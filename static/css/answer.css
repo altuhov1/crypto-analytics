@@ -1,0 +1,84 @@
+:root {
+    --primary-color: #4CAF50;
+    --secondary-color: #2c3e50;
+    --background-color: #f8f9fa;
+    --text-color: #333;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.container {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+h1 {
+    color: var(--secondary-color);
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.success-icon {
+    font-size: 60px;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+p {
+    font-size: 18px;
+    margin-bottom: 25px;
+    color: #555;
+    line-height: 1.6;
+}
+
+.user-name {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.btn {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 14px 30px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.btn:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.footer {
+    margin-top: 30px;
+    font-size: 14px;
+    color: #777;
+}
+
+@media (max-width: 768px) {
+    body {
+        margin: 20px auto;
+        padding: 15px;
+    }
+
+    .container {
+        padding: 30px 20px;
+    }
+}
