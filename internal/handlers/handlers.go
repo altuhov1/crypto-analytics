@@ -1,89 +1,79 @@
 package handlers
 
 import (
-	"fmt"
+	"html/template"
+	"log"
 	"net/http"
-	"text/template"
-	"time"
+	"path/filepath"
+
+	"webdev-90-days/internal/models"
+	"webdev-90-days/internal/services"
+	"webdev-90-days/internal/storage"
 )
 
-func AboutHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "This is a simple backend server!\n")
+// Handler структурка, которая хранит зависимости (сервисы, хранилища)
+// Это называется "Dependency Injection"
+type Handler struct {
+	storage  storage.Storage
+	notifier services.Notifier
+	tmpl     *template.Template
 }
-func FormHandler(w http.ResponseWriter, r *http.Request) {
-	// Разрешаем только POST-запросы
+
+// NewHandler создает новый экземпляр Handler
+func NewHandler(storage storage.Storage, notifier services.Notifier) (*Handler, error) {
+	tmpl, err := template.ParseFiles(filepath.Join("static", "answer.html"))
+	if err != nil {
+		return nil, err
+	}
+	return &Handler{storage: storage, notifier: notifier, tmpl: tmpl}, nil
+}
+
+func (h *Handler) AboutHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Обработка запроса About")
+	http.Error(w, "This is a simple backend server!\n", http.StatusOK)
+}
+
+func (h *Handler) SubmitFormHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Обработка POST запроса на /submit-form")
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Парсим форму, которая пришла в теле запроса.
-	// Этот метод способен парсинговать формы с Content-Type: application/x-www-form-urlencoded
-	err := r.ParseForm()
-	if err != nil {
+	if err := r.ParseForm(); err != nil {
+		log.Printf("Ошибка парсинга формы: %v", err)
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return
 	}
 
-	// Извлекаем данные из полей формы
-	name := r.FormValue("name")
-	email := r.FormValue("email")
-
-	// Отвечаем пользователю
-	fmt.Fprintf(w, "POST request successful!\nName: %s\nEmail: %s\n", name, email)
-}
-func notifyAdmin(form *ContactForm) {
-	// Имитация задержки сети при обращении к внешнему сервису
-	time.Sleep(100 * time.Millisecond)
-	fmt.Printf("=== УВЕДОМЛЕНИЕ ДЛЯ АДМИНА ===\n")
-	fmt.Printf("Новое сообщение от: %s (%s)\n", form.Name, form.Email)
-	fmt.Printf("Текст сообщения: %s\n", form.Message)
-	fmt.Printf("=== КОНЕЦ УВЕДОМЛЕНИЯ ===\n\n")
-}
-func SubmitFormHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
-	}
-
-	// Создаем ЭКЗЕМПЛЯР структуры ContactForm и заполняем его данными из формы
-	formData := ContactForm{
+	contact := models.ContactForm{
 		Name:    r.FormValue("name"),
 		Email:   r.FormValue("email"),
 		Message: r.FormValue("message"),
 	}
 
-	// !!! ВАЖНОЕ НОВОВВЕДЕНИЕ: Сохраняем данные в файл
-	err = saveToFile(&formData)
-	if err != nil {
-		// Если произошла ошибка при сохранении - логируем ее и показываем ошибку пользователю
-		fmt.Printf("Error saving data: %v\n", err) // Вывод в консоль сервера для дебага
-		http.Error(w, "Internal server error: could not save data", http.StatusInternalServerError)
-		return
-	}
-	go notifyAdmin(&formData)
-
-	tmpl, err := template.ParseFiles("static/answer.html")
-	if err != nil {
-		http.Error(w, "Ошибка загрузки шаблона: "+err.Error(), http.StatusInternalServerError)
+	// ВАЛИДАЦИЯ
+	if contact.Name == "" || contact.Email == "" || contact.Message == "" {
+		log.Printf("Невалидные данные: %+v", contact)
+		http.Error(w, "All fields are required", http.StatusBadRequest)
 		return
 	}
 
-	// Подготавливаем данные для шаблона
-	data := AnswerData{
-		Name: formData.Name,
+	// СОХРАНЕНИЕ
+	if err := h.storage.SaveContact(&contact); err != nil {
+		log.Printf("Ошибка сохранения: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
-	// Выполняем шаблон с данными
-	err = tmpl.Execute(w, data)
-	if err != nil {
-		http.Error(w, "Ошибка выполнения шаблона: "+err.Error(), http.StatusInternalServerError)
-		return
+	// УВЕДОМЛЕНИЕ (асинхронно)
+	go h.notifier.NotifyAdmin(&contact)
+
+	// ОТВЕТ ПОЛЬЗОВАТЕЛЮ
+	data := struct{ Name string }{Name: contact.Name}
+	if err := h.tmpl.Execute(w, data); err != nil {
+		log.Printf("Ошибка рендеринга шаблона: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
 }

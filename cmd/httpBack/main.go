@@ -1,21 +1,44 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
+
+	"webdev-90-days/internal/config"
 	"webdev-90-days/internal/handlers"
+	"webdev-90-days/internal/services"
+	"webdev-90-days/internal/storage"
 )
 
 func main() {
-	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/", fs)
-	http.HandleFunc("/submit-form", handlers.SubmitFormHandler)
-	http.HandleFunc("/about", handlers.AboutHandler) // Добавь эту строку
-	http.HandleFunc("/form", handlers.FormHandler)
-	// Запускаем веб-сервер на порту 8080
-	fmt.Println("Сервер запущен на http://localhost:8080")
-	err := http.ListenAndServe(":8080", nil)
+	// Настройка логирования
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	// Загружаем конфигурацию
+	cfg := config.MustLoad()
+
+	// Теперь cfg.StoragePath содержит путь из переменной окружения, а не "зашитый" в коде.
+
+	// Инициализация хранилища ПЕРЕДАЕМ ПУТЬ ИЗ КОНФИГА
+	fileStorage, err := storage.NewFileStorage(cfg.StoragePath)
 	if err != nil {
-		panic(err) // В случае ошибки просто "паникуем"
+		log.Fatal("Failed to create storage:", err)
 	}
+
+	notifier := services.NewNotifier()
+	handler, err := handlers.NewHandler(fileStorage, notifier)
+	if err != nil {
+		log.Fatal("Failed to create handler:", err)
+	}
+
+	// Настройка маршрутов
+	http.HandleFunc("/about", handler.AboutHandler)
+	http.HandleFunc("/submit-form", handler.SubmitFormHandler)
+
+	// Отдача статических файлов
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/", fs)
+
+	log.Printf("Server starting on :%s...", cfg.ServerPort)
+	log.Fatal(http.ListenAndServe(":"+cfg.ServerPort, nil))
 }
