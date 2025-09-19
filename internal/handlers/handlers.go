@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -35,6 +36,7 @@ func (h *Handler) AboutHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) SubmitFormHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Обработка POST запроса на /submit-form")
+	fmt.Println("sjflsfjlksjfl")
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

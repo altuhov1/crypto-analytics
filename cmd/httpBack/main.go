@@ -1,8 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"webdev-90-days/internal/config"
 	"webdev-90-days/internal/handlers"
@@ -11,22 +16,29 @@ import (
 )
 
 func main() {
-	// Настройка логирования
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	// Загружаем конфигурацию
 	cfg := config.MustLoad()
 
-	// Теперь cfg.StoragePath содержит путь из переменной окружения, а не "зашитый" в коде.
-
-	// Инициализация хранилища ПЕРЕДАЕМ ПУТЬ ИЗ КОНФИГА
-	fileStorage, err := storage.NewFileStorage(cfg.StoragePath)
-	if err != nil {
-		log.Fatal("Failed to create storage:", err)
+	// Инициализация хранилища
+	configDB := storage.PGXConfig{
+		Host:     cfg.DBHost,
+		Port:     cfg.DBPort,
+		User:     cfg.DBUser,
+		Password: cfg.DBPassword,
+		DBName:   cfg.DBName,
+		SSLMode:  cfg.DBSSLMode,
 	}
 
+	pgStorage, err := storage.NewPGXStorage(configDB)
+	if err != nil {
+		log.Fatal("Ошибка подключения:", err)
+	}
+	defer pgStorage.Close()
+
 	notifier := services.NewNotifier()
-	handler, err := handlers.NewHandler(fileStorage, notifier)
+	handler, err := handlers.NewHandler(pgStorage, notifier)
 	if err != nil {
 		log.Fatal("Failed to create handler:", err)
 	}
@@ -34,11 +46,40 @@ func main() {
 	// Настройка маршрутов
 	http.HandleFunc("/about", handler.AboutHandler)
 	http.HandleFunc("/submit-form", handler.SubmitFormHandler)
-
-	// Отдача статических файлов
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
 
-	log.Printf("Server starting on :%s...", cfg.ServerPort)
-	log.Fatal(http.ListenAndServe(":"+cfg.ServerPort, nil))
+	// Создаем HTTP сервер с таймаутами
+	srv := &http.Server{
+		Addr:         ":" + cfg.ServerPort,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+
+	// Запускаем сервер в горутине
+	go func() {
+		log.Printf("Server starting on %s", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server failed: %v", err)
+		}
+	}()
+
+	// Канал для перехвата сигналов ОС
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	// Ждем сигнал о завершении
+	<-stop
+	log.Println("Shutting down server gracefully...")
+
+	// Создаем контекст с таймаутом для graceful shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Останавливаем сервер
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	log.Println("Server stopped")
 }
