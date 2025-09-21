@@ -328,3 +328,92 @@ section h2::after {
     margin-top: 2rem;
     flex-wrap: wrap;
 }
+
+/* Стили для фич-листа с иконками слева */
+.feature-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 2rem;
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    border-color: var(--accent-primary);
+}
+
+.feature-icon.simple {
+    background: transparent;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feature-icon.simple img {
+    filter: none;
+    width: 40px;
+    /* Фиксированный размер */
+    height: 40px;
+    /* Фиксированный размер */
+    object-fit: contain;
+    /* Сохраняет пропорции */
+    image-rendering: -webkit-optimize-contrast;
+    /* Для четкости в WebKit */
+    image-rendering: crisp-edges;
+    /* Четкие края */
+    image-rendering: pixelated;
+    /* Для пиксельных иконок */
+}
+
+.feature-content {
+    flex: 1;
+}
+
+.feature-content h3 {
+    color: var(--text-primary);
+    margin-bottom: 0.8rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.feature-content p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .feature-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .feature-icon {
+        align-self: center;
+    }
+
+    .feature-content h3 {
+        font-size: 1.2rem;
+    }
+}
+
+/* Альтернативный вариант с обводкой вместо градиента */
+.feature-icon.outline {
+    background: transparent;
+    border: 2px solid var(--accent-primary);
+}
+
+.feature-icon.outline img {
+    filter: none;
+    /* Возвращаем оригинальные цвета */
+}
