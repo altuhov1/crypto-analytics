@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strconv"
 
 	"webdev-90-days/internal/models"
 	"webdev-90-days/internal/services"
@@ -15,18 +16,32 @@ import (
 // Handler структурка, которая хранит зависимости (сервисы, хранилища)
 // Это называется "Dependency Injection"
 type Handler struct {
-	storage  storage.Storage
-	notifier services.Notifier
-	tmpl     *template.Template
+	storage   storage.Storage
+	notifier  services.Notifier
+	cryptoSvc *services.CryptoService
+	tmpl      *template.Template
 }
 
 // NewHandler создает новый экземпляр Handler
-func NewHandler(storage storage.Storage, notifier services.Notifier) (*Handler, error) {
-	tmpl, err := template.ParseFiles(filepath.Join("static", "answer.html"))
+func NewHandler(storage storage.Storage, notifier services.Notifier, cryptoSvc *services.CryptoService) (*Handler, error) {
+
+	tmpl := template.New("").Funcs(template.FuncMap{
+		"formatNumber": formatNumber,
+		"add":          add,
+	})
+	tmpl, err := tmpl.ParseFiles(
+		filepath.Join("static", "answer.html"),
+		filepath.Join("static", "crypto_top.html"),
+	)
 	if err != nil {
 		return nil, err
 	}
-	return &Handler{storage: storage, notifier: notifier, tmpl: tmpl}, nil
+	return &Handler{
+		storage:   storage,
+		notifier:  notifier,
+		cryptoSvc: cryptoSvc,
+		tmpl:      tmpl,
+	}, nil
 }
 
 func (h *Handler) ContactFormHandler(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +85,34 @@ func (h *Handler) ContactFormHandler(w http.ResponseWriter, r *http.Request) {
 	// ОТВЕТ ПОЛЬЗОВАТЕЛЮ
 	data := struct{ Name string }{Name: contact.Name}
 	if err := h.tmpl.Execute(w, data); err != nil {
+		log.Printf("Ошибка рендеринга шаблона: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+}
+
+func (h *Handler) CryptoTopHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Обработка запроса на /crypto-top")
+
+	// Получаем параметр limit из query string (по умолчанию 10)
+	limitStr := r.URL.Query().Get("limit")
+	limit := 50
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+		}
+	}
+
+	// Получаем данные из CoinGecko
+	coins, err := h.cryptoSvc.GetTopCryptos(limit)
+	if err != nil {
+		log.Printf("Ошибка получения криптовалют: %v", err)
+		http.Error(w, "Временные проблемы с получением данных", http.StatusInternalServerError)
+		return
+	}
+
+	// Рендерим шаблон
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := h.tmpl.ExecuteTemplate(w, "crypto_top.html", coins); err != nil {
 		log.Printf("Ошибка рендеринга шаблона: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
