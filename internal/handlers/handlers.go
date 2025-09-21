@@ -84,7 +84,7 @@ func (h *Handler) ContactFormHandler(w http.ResponseWriter, r *http.Request) {
 
 	// ОТВЕТ ПОЛЬЗОВАТЕЛЮ
 	data := struct{ Name string }{Name: contact.Name}
-	if err := h.tmpl.Execute(w, data); err != nil {
+	if err := h.tmpl.ExecuteTemplate(w, "answer.html", data); err != nil {
 		log.Printf("Ошибка рендеринга шаблона: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
