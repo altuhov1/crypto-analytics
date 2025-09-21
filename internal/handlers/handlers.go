@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -29,14 +28,8 @@ func NewHandler(storage storage.Storage, notifier services.Notifier) (*Handler, 
 	return &Handler{storage: storage, notifier: notifier, tmpl: tmpl}, nil
 }
 
-func (h *Handler) AboutHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Обработка запроса About")
-	http.Error(w, "This is a simple backend server!\n", http.StatusOK)
-}
-
 func (h *Handler) SubmitFormHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Обработка POST запроса на /submit-form")
-	fmt.Println("sjflsfjlksjfl")
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

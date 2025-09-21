@@ -43,11 +43,19 @@ func main() {
 		log.Fatal("Failed to create handler:", err)
 	}
 
-	// Настройка маршрутов
-	http.HandleFunc("/about", handler.AboutHandler)
-	http.HandleFunc("/submit-form", handler.SubmitFormHandler)
 	fs := http.FileServer(http.Dir("static"))
-	http.Handle("/", fs)
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	http.HandleFunc("/submit-form", handler.SubmitFormHandler)
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Если запрос не к корню - отдаем 404
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+		http.ServeFile(w, r, "static/index.html")
+	})
 
 	// Создаем HTTP сервер с таймаутами
 	srv := &http.Server{

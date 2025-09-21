@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Свяжитесь с нами - CryptoAnalytics</title>
+    <link rel="stylesheet" href="/static/css/form.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <h1>Свяжитесь с нами</h1>
+            <p>Расскажите о вашем проекте или задайте вопрос</p>
+        </div>
+
+        <form action="/submit-form" method="POST" id="contactForm">
+            <div class="form-group">
+                <label for="name">Имя:</label>
+                <input type="text" id="name" name="name" required placeholder="Ваше имя">
+                <div class="error-message">Пожалуйста, введите ваше имя</div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required placeholder="your@email.com">
+                <div class="error-message">Пожалуйста, введите корректный email</div>
+            </div>
+
+            <div class="form-group">
+                <label for="message">Сообщение:</label>
+                <textarea id="message" name="message" rows="5" required
+                    placeholder="Расскажите о вашем проекте..."></textarea>
+                <div class="error-message">Пожалуйста, введите ваше сообщение</div>
+            </div>
+
+            <button type="submit" class="btn">Отправить сообщение</button>
+        </form>
+
+        <div class="form-footer">
+            <p>Мы ответим вам в течение 24 часов</p>
+            <a href="/" class="back-link">← Вернуться на главную</a>
+        </div>
+    </div>
+</body>
+
+</html>

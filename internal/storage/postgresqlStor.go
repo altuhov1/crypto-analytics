@@ -4,6 +4,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"webdev-90-days/internal/models"
@@ -28,7 +29,6 @@ func NewPGXStorage(cfg PGXConfig) (*PGXStorage, error) {
 	// Формируем строку подключения
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
 		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DBName, cfg.SSLMode)
-
 	// Создаем пул соединений
 	config, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
@@ -59,18 +59,30 @@ func NewPGXStorage(cfg PGXConfig) (*PGXStorage, error) {
 
 func (s *PGXStorage) SaveContact(contact *models.ContactForm) error {
 	query := `
-	INSERT INTO contacts (name, email, message) 
-	VALUES ($1, $2, $3)
-	`
+    INSERT INTO contacts (name, email, message) 
+    VALUES ($1, $2, $3)
+    `
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Выполняем INSERT через Go!
-	_, err := s.pool.Exec(ctx, query, contact.Name, contact.Email, contact.Message)
+	// Логируем данные которые пытаемся сохранить
+	log.Printf("Attempting to save: Name=%s, Email=%s, Message=%s",
+		contact.Name, contact.Email, contact.Message)
+
+	// Выполняем INSERT
+	result, err := s.pool.Exec(ctx, query, contact.Name, contact.Email, contact.Message)
 	if err != nil {
+		// Детальное логирование ошибки
+		log.Printf("SQL Error: %v", err)
+		log.Printf("Query: %s", query)
+		log.Printf("Params: %s, %s, %s", contact.Name, contact.Email, contact.Message)
 		return fmt.Errorf("ошибка сохранения: %w", err)
 	}
+
+	// Логируем результат
+	rowsAffected := result.RowsAffected()
+	log.Printf("Save successful. Rows affected: %d", rowsAffected)
 
 	return nil
 }
