@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -28,8 +29,8 @@ func NewHandler(storage storage.Storage, notifier services.Notifier) (*Handler, 
 	return &Handler{storage: storage, notifier: notifier, tmpl: tmpl}, nil
 }
 
-func (h *Handler) SubmitFormHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Обработка POST запроса на /submit-form")
+func (h *Handler) ContactFormHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Обработка POST запроса на /Contact")
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -47,6 +48,7 @@ func (h *Handler) SubmitFormHandler(w http.ResponseWriter, r *http.Request) {
 		Email:   r.FormValue("email"),
 		Message: r.FormValue("message"),
 	}
+	fmt.Println(contact)
 
 	// ВАЛИДАЦИЯ
 	if contact.Name == "" || contact.Email == "" || contact.Message == "" {

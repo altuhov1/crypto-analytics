@@ -155,14 +155,21 @@ body {
 }
 
 .btn-secondary {
-    background: transparent;
-    color: var(--accent-color);
-    border: 2px solid var(--accent-color);
+    display: inline-block;
+    padding: 10px 20px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
 }
 
 .btn-secondary:hover {
-    background: var(--accent-color);
-    color: #000;
+    background: var(--accent-primary);
+    color: var(--text-primary);
+    transform: translateY(-1px);
 }
 
 .profile-photo {
@@ -301,4 +308,23 @@ section h2::after {
     .skills-grid {
         grid-template-columns: 1fr;
     }
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.btn-outline:hover {
+    background: var(--accent-primary);
+    color: var(--text-primary);
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-start;
+    margin-top: 2rem;
+    flex-wrap: wrap;
 }

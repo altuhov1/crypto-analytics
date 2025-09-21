@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Дмитрий - Backend Developer</title>
+    <title>Crypto Analytics - Сервис анализа криптовалют</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -12,11 +12,11 @@
 <body>
     <header class="header">
         <div class="container">
-            <h1 class="logo">DmitryDev</h1>
+            <h1 class="logo">Crypto Analytics</h1>
             <nav class="nav">
-                <a href="#about">Обо мне</a>
-                <a href="#skills">Навыки</a>
-                <a href="/static/contact.html" class="btn-secondary">Связаться</a>
+                <a href="#features">Возможности</a>
+                <a href="#about">О сервисе</a>
+                <a href="/static/contact.html" class="btn-outline">Связаться</a> <!-- Изменено здесь -->
             </nav>
         </div>
     </header>
@@ -26,13 +26,42 @@
             <div class="container">
                 <div class="hero-content">
                     <div class="hero-text">
-                        <h2>Backend Developer</h2>
-                        <p>Создаю надежные и масштабируемые серверные решения на Go. Специализируюсь на
-                            высоконагруженных системах и микросервисной архитектуре.</p>
-                        <a href="/static/contact.html" class="btn">Начать проект</a>
+                        <h2>Анализ криптовалют</h2>
+                        <p>Сервис для быстрого и открытого просмотра криптовалют и их анализа.
+                            Получайте актуальную информацию и принимайте обоснованные решения.</p>
+
+                        <div class="cta-buttons">
+                            <a href="#crypto-top" class="btn">Топ криптовалют</a>
+                            <a href="#crypto-suggest" class="btn btn-outline">Предложить крипту</a>
+                            <a href="/static/contact.html" class="btn btn-outline">Связаться с нами</a>
+                            <!-- Изменено здесь -->
+                        </div>
                     </div>
                     <div class="hero-image">
-                        <img src="/static/images/photo_2025-09-14_21-36-11.jpg" alt="Дмитрий" class="profile-photo">
+                        <img src="/static/images/crypto-analytics-logo.png" alt="Crypto Analytics"
+                            class="profile-photo">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="container">
+                <h2>Наши возможности</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>📊 Real-time данные</h3>
+                        <p>Актуальные курсы криптовалют с ведущих бирж с обновлением в реальном времени.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3>📈 Технический анализ</h3>
+                        <p>Индикаторы, графики и аналитика для принятия взвешенных торговых решений.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3>🔔 Уведомления</h3>
+                        <p>Получайте оповещения о значительных изменениях курсов и рыночных движениях.</p>
                     </div>
                 </div>
             </div>
@@ -40,32 +69,58 @@
 
         <section id="about" class="about">
             <div class="container">
-                <h2>Обо мне</h2>
-                <p>Backend-разработчик с фокусом на создании эффективных и надежных систем. Постоянно изучаю новые
-                    технологии и подходы к разработке. Верю в чистый код, тестирование и автоматизацию процессов.</p>
+                <h2>О сервисе</h2>
+                <div class="about-content">
+                    <p>Crypto Analytics — это современная платформа для анализа криптовалютных рынков,
+                        созданная на основе передовых технологий. Мы предоставляем открытый доступ к данным
+                        и инструментам для анализа.</p>
+                    <p>Наша цель — сделать крипто-аналитику доступной для всех трейдеров и инвесторов.</p>
+                </div>
             </div>
         </section>
 
-        <section id="skills" class="skills">
+        <!-- Задел на будущее -->
+        <section id="crypto-top" class="features" style="display: none;">
             <div class="container">
-                <h2>Технологический стек</h2>
-                <div class="skills-grid">
-                    <div class="skill-item">Go (Golang)</div>
-                    <div class="skill-item">PostgreSQL</div>
-                    <div class="skill-item">Docker & Kubernetes</div>
-                    <div class="skill-item">REST/GraphQL API</div>
-                    <div class="skill-item">Redis</div>
-                    <div class="skill-item">Microservices</div>
-                </div>
+                <h2>Топ криптовалют</h2>
+                <p style="text-align: center; color: var(--text-secondary);">
+                    Раздел в разработке. Скоро здесь появится рейтинг криптовалют!
+                </p>
+            </div>
+        </section>
+
+        <section id="crypto-suggest" class="features" style="display: none;">
+            <div class="container">
+                <h2>Предложить криптовалюту</h2>
+                <p style="text-align: center; color: var(--text-secondary);">
+                    Функционал в разработке. Скоро вы сможете предлагать криптовалюты для анализа!
+                </p>
             </div>
         </section>
     </main>
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2024 DmitryDev. Все права защищены.</p>
+            <p>&copy; 2024 Crypto Analytics. Все права защищены.</p>
         </div>
     </footer>
+
+    <script>
+        // Простые обработчики для кнопок (задел на будущее)
+        document.addEventListener('DOMContentLoaded', function () {
+            // Кнопка "Топ криптовалют"
+            document.querySelector('a[href="#crypto-top"]').addEventListener('click', function (e) {
+                e.preventDefault();
+                alert('Раздел "Топ криптовалют" в разработке! Скоро здесь появится рейтинг криптовалют.');
+            });
+
+            // Кнопка "Предложить крипту" 
+            document.querySelector('a[href="#crypto-suggest"]').addEventListener('click', function (e) {
+                e.preventDefault();
+                alert('Функционал предложения криптовалют в разработке! Скоро вы сможете предлагать криптовалюты для анализа.');
+            });
+        });
+    </script>
 </body>
 
 </html>

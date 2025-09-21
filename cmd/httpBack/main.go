@@ -46,7 +46,7 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	http.HandleFunc("/submit-form", handler.SubmitFormHandler)
+	http.HandleFunc("/contact", handler.ContactFormHandler)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Если запрос не к корню - отдаем 404
