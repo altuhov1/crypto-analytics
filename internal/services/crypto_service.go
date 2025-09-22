@@ -3,75 +3,154 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
+	"os"
+	"sync"
 	"time"
 
 	"webdev-90-days/internal/models"
 )
 
 type CryptoService struct {
-	baseURL string
-	client  *http.Client
+	baseURL    string
+	client     *http.Client
+	cache      []models.Coin // Кэш данных
+	cacheMutex sync.RWMutex  // Мьютекс для потокобезопасности
+	cacheTime  time.Time     // Время последнего обновления
+	cacheFile  string        // Файл для кэширования
+	useAPI     bool          // Режим работы: true - API, false - файл
 }
 
-func NewCryptoService() *CryptoService {
-	return &CryptoService{
-		baseURL: "https://api.coingecko.com/api/v3",
-		client: &http.Client{
-			Timeout: 10 * time.Second, // Таймаут для запросов
-		},
+func NewCryptoService(useAPI bool, cacheFile string) *CryptoService {
+	svc := &CryptoService{
+		baseURL:   "https://api.coingecko.com/api/v3",
+		client:    &http.Client{Timeout: 10 * time.Second},
+		cacheFile: cacheFile,
+		useAPI:    useAPI,
+	}
+
+	if useAPI {
+		// Режим API: загружаем и кэшируем
+		svc.refreshCache()
+		go svc.startCacheUpdater()
+	} else {
+		// Режим файла: загружаем из файла
+		svc.loadFromFile()
+	}
+
+	return svc
+}
+
+// loadFromFile загружает данные из файла
+func (s *CryptoService) loadFromFile() error {
+	s.cacheMutex.Lock()
+	defer s.cacheMutex.Unlock()
+
+	data, err := os.ReadFile(s.cacheFile)
+	if err != nil {
+		return fmt.Errorf("ошибка чтения файла: %w", err)
+	}
+
+	if err := json.Unmarshal(data, &s.cache); err != nil {
+		return fmt.Errorf("ошибка парсинга JSON: %w", err)
+	}
+
+	s.cacheTime = time.Now()
+	log.Printf("Загружено %d монет из файла %s", len(s.cache), s.cacheFile)
+	return nil
+}
+
+// saveToFile сохраняет данные в файл
+func (s *CryptoService) saveToFile() error {
+	s.cacheMutex.RLock()
+	defer s.cacheMutex.RUnlock()
+
+	data, err := json.MarshalIndent(s.cache, "", "  ")
+	if err != nil {
+		return fmt.Errorf("ошибка создания JSON: %w", err)
+	}
+
+	if err := os.WriteFile(s.cacheFile, data, 0644); err != nil {
+		return fmt.Errorf("ошибка записи файла: %w", err)
+	}
+
+	log.Printf("Сохранено %d монет в файл %s", len(s.cache), s.cacheFile)
+	return nil
+}
+
+// refreshCache обновляет кэш (с сохранением в файл если нужно)
+func (s *CryptoService) refreshCache() {
+	coins, err := s.getTopCryptosFromAPI(250)
+	if err != nil {
+		log.Printf("Ошибка обновления кэша: %v", err)
+		return
+	}
+
+	s.cacheMutex.Lock()
+	s.cache = coins
+	s.cacheTime = time.Now()
+	s.cacheMutex.Unlock()
+
+	// Сохраняем в файл для будущего использования
+	if err := s.saveToFile(); err != nil {
+		log.Printf("Ошибка сохранения в файл: %v", err)
+	}
+
+	log.Printf("Кэш обновлен. Загружено %d монет", len(coins))
+}
+
+func (s *CryptoService) startCacheUpdater() {
+	ticker := time.NewTicker(1 * time.Hour) // Обновление каждый час
+
+	for range ticker.C {
+		s.refreshCache()
 	}
 }
 
-// GetTopCryptos получает топ N криптовалют по рыночной капитализации
-func (s *CryptoService) GetTopCryptos(limit int) ([]models.Coin, error) {
+// getTopCryptosFromAPI приватный метод для запроса к API
+func (s *CryptoService) getTopCryptosFromAPI(limit int) ([]models.Coin, error) {
 	url := fmt.Sprintf("%s/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=%d&page=1&sparkline=false",
 		s.baseURL, limit)
-
 	resp, err := s.client.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка запроса к CoinGecko: %w", err)
+		return nil, fmt.Errorf("ошибка запроса: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("CoinGecko API вернул статус: %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("ошибка чтения ответа: %w", err)
+		return nil, fmt.Errorf("API вернул статус: %d", resp.StatusCode)
 	}
 
 	var coins []models.Coin
-	if err := json.Unmarshal(body, &coins); err != nil {
-		return nil, fmt.Errorf("ошибка парсинга JSON: %w", err)
+	if err := json.NewDecoder(resp.Body).Decode(&coins); err != nil {
+		return nil, fmt.Errorf("ошибка парсинга: %w", err)
 	}
 
-	log.Printf("Успешно получено %d криптовалют", len(coins))
 	return coins, nil
 }
 
-// GetCoinPrice получает цену конкретной криптовалюты
-// func (s *CryptoService) GetCoinPrice(coinID string) (float64, error) {
-// 	url := fmt.Sprintf("%s/simple/price?ids=%s&vs_currencies=usd", s.baseURL, coinID)
+// GetTopCryptos теперь отдает данные из кэша!
+func (s *CryptoService) GetTopCryptos(limit int) ([]models.Coin, error) {
+	s.cacheMutex.RLock()
+	defer s.cacheMutex.RUnlock()
 
-// 	resp, err := s.client.Get(url)
-// 	if err != nil {
-// 		return 0, fmt.Errorf("ошибка запроса: %w", err)
-// 	}
-// 	defer resp.Body.Close()
+	if len(s.cache) == 0 {
+		return nil, fmt.Errorf("кэш пустой")
+	}
 
-// 	var result map[string]map[string]float64
-// 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-// 		return 0, fmt.Errorf("ошибка парсинга JSON: %w", err)
-// 	}
+	// Возвращаем запрошенное количество монет
+	if limit > len(s.cache) {
+		limit = len(s.cache)
+	}
 
-// 	if coinData, exists := result[coinID]; exists {
-// 		return coinData["usd"], nil
-// 	}
+	return s.cache[:limit], nil
+}
 
-// 	return 0, fmt.Errorf("криптовалюта не найдена")
-// }
+// GetCacheInfo возвращает информацию о кэше
+func (s *CryptoService) GetCacheInfo() (int, time.Time) {
+	s.cacheMutex.RLock()
+	defer s.cacheMutex.RUnlock()
+
+	return len(s.cache), s.cacheTime
+}

@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"webdev-90-days/internal/models"
 	"webdev-90-days/internal/services"
@@ -28,6 +30,7 @@ func NewHandler(storage storage.Storage, notifier services.Notifier, cryptoSvc *
 	tmpl := template.New("").Funcs(template.FuncMap{
 		"formatNumber": formatNumber,
 		"add":          add,
+		"formatMoney":  formatMoney,
 	})
 	tmpl, err := tmpl.ParseFiles(
 		filepath.Join("static", "answer.html"),
@@ -95,7 +98,7 @@ func (h *Handler) CryptoTopHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Получаем параметр limit из query string (по умолчанию 10)
 	limitStr := r.URL.Query().Get("limit")
-	limit := 50
+	limit := 250
 	if limitStr != "" {
 		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
 			limit = l
@@ -116,4 +119,17 @@ func (h *Handler) CryptoTopHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Ошибка рендеринга шаблона: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
+}
+
+func (h *Handler) CacheInfoHandler(w http.ResponseWriter, r *http.Request) {
+	count, cacheTime := h.cryptoSvc.GetCacheInfo()
+
+	info := map[string]interface{}{
+		"cached_coins": count,
+		"last_updated": cacheTime.Format("2006-01-02 15:04:05"),
+		"age_minutes":  time.Since(cacheTime).Minutes(),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(info)
 }

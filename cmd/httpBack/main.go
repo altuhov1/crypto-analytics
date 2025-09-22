@@ -38,7 +38,7 @@ func main() {
 	defer pgStorage.Close()
 
 	notifier := services.NewNotifier()
-	cryptoSvc := services.NewCryptoService()
+	cryptoSvc := services.NewCryptoService(false, "storage/crypto_cache.json")
 	handler, err := handlers.NewHandler(pgStorage, notifier, cryptoSvc)
 	if err != nil {
 		log.Fatal("Failed to create handler:", err)
@@ -49,6 +49,7 @@ func main() {
 
 	http.HandleFunc("/contact", handler.ContactFormHandler)
 	http.HandleFunc("/crypto-top", handler.CryptoTopHandler)
+	http.HandleFunc("/cache-info", handler.CacheInfoHandler)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Если запрос не к корню - отдаем 404

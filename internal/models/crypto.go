@@ -7,8 +7,8 @@ type Coin struct {
 	Name          string  `json:"name"`
 	CurrentPrice  float64 `json:"current_price"`
 	PriceChange24 float64 `json:"price_change_percentage_24h"`
-	MarketCap     int64   `json:"market_cap"`
-	Volume24h     int64   `json:"total_volume"`
+	MarketCap     float64 `json:"market_cap"`   // Измените на float64
+	Volume24h     float64 `json:"total_volume"` // Измените на float64
 	LastUpdated   string  `json:"last_updated"`
 }
 

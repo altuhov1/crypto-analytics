@@ -8,6 +8,7 @@
     --primary-bg: #0c0c0c;
     --secondary-bg: #1a1a1a;
     --accent-color: #f0b90b;
+
     --text-primary: #ffffff;
     --text-secondary: #b7b7b7;
     --card-bg: #1e1e1e;
@@ -109,7 +110,7 @@ body {
 
 .hero-content {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 65% 35%;
     gap: 4rem;
     align-items: center;
     position: relative;
@@ -173,8 +174,8 @@ body {
 }
 
 .profile-photo {
-    width: 320px;
-    height: 320px;
+    width: 280px;
+    height: 280px;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid var(--accent-color);
@@ -218,7 +219,7 @@ section h2::after {
 
 .about p {
     text-align: center;
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
     color: var(--text-secondary);
     font-size: 1.1rem;
