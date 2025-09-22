@@ -1,12 +1,12 @@
 :root {
-    --bg-primary: #0c0c0f;
-    --bg-secondary: #16161a;
-    --bg-card: #1e1e28;
+    --bg-primary: #0c0c0c;
+    --bg-secondary: #1a1a1a;
+    --bg-card: #1e1e1e;
     --text-primary: #ffffff;
-    --text-secondary: #a0a0b3;
-    --accent-primary: #00c08b;
-    --accent-secondary: #f0b90b;
-    --border-color: #2a2a3a;
+    --text-secondary: #b7b7b7;
+    --accent-primary: #f0b90b;
+    --accent-secondary: #f8d33a;
+    --border-color: #2d2d2d;
 }
 
 * {
@@ -21,8 +21,8 @@ body {
     color: var(--text-primary);
     background-color: var(--bg-primary);
     background-image:
-        radial-gradient(circle at 15% 50%, rgba(0, 192, 139, 0.05) 0%, transparent 25%),
-        radial-gradient(circle at 85% 30%, rgba(240, 185, 11, 0.05) 0%, transparent 25%);
+        radial-gradient(circle at 15% 50%, rgba(240, 185, 11, 0.1) 0%, transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(248, 211, 58, 0.05) 0%, transparent 25%);
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -38,7 +38,7 @@ body {
     width: 100%;
     max-width: 500px;
     text-align: center;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(10px);
 }
 
@@ -73,7 +73,7 @@ body {
 }
 
 .user-name {
-    color: var(--accent-secondary);
+    color: var(--accent-primary);
     font-weight: 600;
 }
 
@@ -93,7 +93,7 @@ body {
 .btn {
     padding: 14px 32px;
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    color: var(--text-primary);
+    color: #000000;
     text-decoration: none;
     border-radius: 8px;
     font-weight: 600;
@@ -111,12 +111,12 @@ body {
 
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(240, 185, 11, 0.2);
+    box-shadow: 0 8px 25px rgba(240, 185, 11, 0.3);
 }
 
 .btn-outline:hover {
     background: var(--accent-primary);
-    color: var(--text-primary);
+    color: #000000;
 }
 
 @media (max-width: 768px) {
