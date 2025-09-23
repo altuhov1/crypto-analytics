@@ -37,6 +37,9 @@ func main() {
 	}
 	defer pgStorage.Close()
 
+	if err := pgStorage.CheckAndCreateTables(); err != nil {
+		log.Fatal("Ошибка создания таблиц:", err)
+	}
 	notifier := services.NewNotifier()
 	cryptoSvc := services.NewCryptoService(false, "storage/crypto_cache.json")
 	handler, err := handlers.NewHandler(pgStorage, notifier, cryptoSvc)

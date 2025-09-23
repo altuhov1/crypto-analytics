@@ -91,3 +91,35 @@ func (s *PGXStorage) Close() error {
 	s.pool.Close()
 	return nil
 }
+
+func (s *PGXStorage) CheckAndCreateTables() error {
+	// Проверяем существует ли таблица contacts
+	var tableExists bool
+	err := s.pool.QueryRow(context.Background(),
+		"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'contacts')",
+	).Scan(&tableExists)
+
+	if err != nil {
+		return err
+	}
+
+	if !tableExists {
+		log.Println("Таблица contacts не найдена, создаем...")
+		// Создаем таблицу
+		_, err = s.pool.Exec(context.Background(), `
+            CREATE TABLE contacts (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                email TEXT NOT NULL, 
+                message TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `)
+		if err != nil {
+			return err
+		}
+		log.Println("Таблица contacts создана")
+	}
+
+	return nil
+}
