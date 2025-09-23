@@ -18,14 +18,18 @@ import (
 // Handler структурка, которая хранит зависимости (сервисы, хранилища)
 // Это называется "Dependency Injection"
 type Handler struct {
-	storage   storage.Storage
-	notifier  services.Notifier
-	cryptoSvc *services.CryptoService
-	tmpl      *template.Template
+	storage     storage.FormStorage
+	notifier    services.Notifier
+	cryptoSvc   *services.CryptoService // просто струкутра, тк не планирую второй серис
+	userService *services.UserService
+	tmpl        *template.Template
 }
 
 // NewHandler создает новый экземпляр Handler
-func NewHandler(storage storage.Storage, notifier services.Notifier, cryptoSvc *services.CryptoService) (*Handler, error) {
+func NewHandler(storage storage.FormStorage,
+	notifier services.Notifier,
+	cryptoSvc *services.CryptoService,
+	userService *services.UserService) (*Handler, error) {
 
 	tmpl := template.New("").Funcs(template.FuncMap{
 		"formatNumber": formatNumber,
@@ -33,17 +37,18 @@ func NewHandler(storage storage.Storage, notifier services.Notifier, cryptoSvc *
 		"formatMoney":  formatMoney,
 	})
 	tmpl, err := tmpl.ParseFiles(
-		filepath.Join("static", "answer.html"),
+		filepath.Join("static", "answerForm.html"),
 		filepath.Join("static", "crypto_top.html"),
 	)
 	if err != nil {
 		return nil, err
 	}
 	return &Handler{
-		storage:   storage,
-		notifier:  notifier,
-		cryptoSvc: cryptoSvc,
-		tmpl:      tmpl,
+		storage:     storage,
+		notifier:    notifier,
+		cryptoSvc:   cryptoSvc,
+		userService: userService,
+		tmpl:        tmpl,
 	}, nil
 }
 
@@ -76,18 +81,18 @@ func (h *Handler) ContactFormHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// СОХРАНЕНИЕ
-	if err := h.storage.SaveContact(&contact); err != nil {
+	if err := h.storage.SaveContactFrom(&contact); err != nil {
 		log.Printf("Ошибка сохранения: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	// УВЕДОМЛЕНИЕ (асинхронно)
-	go h.notifier.NotifyAdmin(&contact)
+	go h.notifier.NotifyAdmContForm(&contact)
 
 	// ОТВЕТ ПОЛЬЗОВАТЕЛЮ
 	data := struct{ Name string }{Name: contact.Name}
-	if err := h.tmpl.ExecuteTemplate(w, "answer.html", data); err != nil {
+	if err := h.tmpl.ExecuteTemplate(w, "answerForm.html", data); err != nil {
 		log.Printf("Ошибка рендеринга шаблона: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}

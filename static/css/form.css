@@ -160,3 +160,65 @@ textarea:invalid:not(:focus):not(:placeholder-shown)+.error-message {
         font-size: 1.8rem;
     }
 }
+
+/* Дополнительные стили для улучшения форм */
+.form-group.password-group {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 38px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+}
+
+.password-toggle:hover {
+    color: var(--accent-primary);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin-top: 4px;
+}
+
+.checkbox-group label {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+.form-links {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.form-links a {
+    color: var(--accent-primary);
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+.form-links a:hover {
+    color: var(--accent-secondary);
+}
+
+/* Стили для успешной отправки */
+.form-success {
+    text-align: center;
+    padding: 2rem;
+}
+
+.form-success .success-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}

@@ -37,12 +37,16 @@ func main() {
 	}
 	defer pgStorage.Close()
 
+	fileSorageUser := storage.NewUserFileStorage("storage/user.json")
+
 	if err := pgStorage.CheckAndCreateTables(); err != nil {
 		log.Fatal("Ошибка создания таблиц:", err)
 	}
 	notifier := services.NewNotifier()
 	cryptoSvc := services.NewCryptoService(false, "storage/crypto_cache.json")
-	handler, err := handlers.NewHandler(pgStorage, notifier, cryptoSvc)
+
+	userSvc := services.NewUserService(fileSorageUser)
+	handler, err := handlers.NewHandler(pgStorage, notifier, cryptoSvc, userSvc)
 	if err != nil {
 		log.Fatal("Failed to create handler:", err)
 	}

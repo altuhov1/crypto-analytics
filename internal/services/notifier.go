@@ -4,5 +4,6 @@ import "webdev-90-days/internal/models"
 
 // Notifier определяет контракт для отправки уведомлений.
 type Notifier interface {
-	NotifyAdmin(contact *models.ContactForm)
+	NotifyAdmContForm(contact *models.ContactForm)
+	NotifyAdmNewUserForm(contact *models.User)
 }

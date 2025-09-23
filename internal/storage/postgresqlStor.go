@@ -57,7 +57,7 @@ func NewPGXStorage(cfg PGXConfig) (*PGXStorage, error) {
 	return &PGXStorage{pool: pool}, nil
 }
 
-func (s *PGXStorage) SaveContact(contact *models.ContactForm) error {
+func (s *PGXStorage) SaveContactFrom(contact *models.ContactForm) error {
 	query := `
     INSERT INTO contacts (name, email, message) 
     VALUES ($1, $2, $3)
