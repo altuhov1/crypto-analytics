@@ -13,7 +13,6 @@ type FormStorage interface {
 
 type UserStorage interface {
 	CreateUser(user *models.User) error
-	GetUserByID(id int) (*models.User, error)
 	GetUserByEmail(email string) (*models.User, error)
 	// UpdateUser(user *models.User) error
 	// DeleteUser(id int) error
