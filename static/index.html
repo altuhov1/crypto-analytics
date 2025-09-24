@@ -19,9 +19,17 @@
                     style="font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: -0.5px; font-size: 1.8rem; text-decoration: none; color: var(--accent-color);">CoinSighit</a>
             </h1>
             <nav class="nav">
-                <a href="#features">Возможности</a>
-                <a href="#about">О сервисе</a>
-                <a href="/static/contactForm.html" class="btn-outline">Связаться</a> <!-- Изменено здесь -->
+                <a href="/static/contactForm.html" class="btn-outline">Связаться</a>
+                <!-- Блок для авторизации -->
+                <div id="auth-buttons" style="display: none;">
+                    <a href="/static/login.html" class="btn-outline">Войти</a>
+                    <a href="/static/formNewUser.html" class="btn-outline">Зарегистрироваться</a>
+                </div>
+                <!-- Блок для авторизованного пользователя -->
+                <div id="user-profile" style="display: none;">
+                    <span id="username" style="color: var(--accent-color); font-weight: 600;"></span>
+                    <a href="/logout" class="btn-outline" style="margin-left: 10px;">Выйти</a>
+                </div>
             </nav>
         </div>
     </header>
@@ -144,6 +152,56 @@
                 alert('Функционал предложения криптовалют в разработке! Скоро вы сможете предлагать криптовалюты для анализа.');
             });
         });
+    </script>
+    <script>
+        // Функция проверки авторизации
+        function checkAuth() {
+            const authButtons = document.getElementById('auth-buttons');
+            const userProfile = document.getElementById('user-profile');
+            const usernameSpan = document.getElementById('username');
+
+            // Проверяем, есть ли пользователь в localStorage
+            const user = localStorage.getItem('currentUser');
+
+            if (user) {
+                // ПОЛЬЗОВАТЕЛЬ ВОШЕЛ - показываем профиль
+                usernameSpan.textContent = user;
+                userProfile.style.display = 'flex';
+                authButtons.style.display = 'none';
+            } else {
+                // ПОЛЬЗОВАТЕЛЬ НЕ ВОШЕЛ - показываем кнопки входа
+                authButtons.style.display = 'flex';
+                userProfile.style.display = 'none';
+            }
+        }
+
+        // Функция входа (будет вызываться после успешной авторизации)
+        function login(username) {
+            localStorage.setItem('currentUser', username);
+            checkAuth(); // Обновляем интерфейс
+        }
+
+        // Функция выхода
+        function logout() {
+            localStorage.removeItem('currentUser');
+            checkAuth(); // Обновляем интерфейс
+        }
+
+        // Проверяем авторизацию при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function () {
+            checkAuth();
+
+            // Демо-код для тестирования (удалите в будущем)
+            console.log('Для теста: введите login("ВашеИмя") в консоли браузера');
+        });
+
+        // Временная функция для демонстрации (удалите когда будет настоящая авторизация)
+        function demoLogin() {
+            const username = prompt('Введите имя пользователя для демо:');
+            if (username) {
+                login(username);
+            }
+        }
     </script>
 </body>
 

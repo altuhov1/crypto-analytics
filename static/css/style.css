@@ -418,3 +418,40 @@ section h2::after {
     filter: none;
     /* Возвращаем оригинальные цвета */
 }
+
+/* Стили для навигации */
+.nav {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+#auth-buttons {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-left: auto;
+}
+
+#user-profile {
+    display: none;
+    /* Скрываем по умолчанию в CSS */
+    gap: 1rem;
+    align-items: center;
+    margin-left: auto;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .nav {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    #auth-buttons,
+    #user-profile {
+        margin-left: 0;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
