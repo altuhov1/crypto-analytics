@@ -2,6 +2,6 @@ package models
 
 type User struct {
 	Email    string `json:"email"`
-	Password string `json:"-"` // не сериализуем в JSON
+	Password string `json:"password"`
 	Username string `json:"name"`
 }

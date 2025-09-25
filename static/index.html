@@ -21,14 +21,14 @@
             <nav class="nav">
                 <a href="/static/contactForm.html" class="btn-outline">Связаться</a>
                 <!-- Блок для авторизации -->
-                <div id="auth-buttons" style="display: none;">
+                <div id="auth-buttons">
                     <a href="/static/login.html" class="btn-outline">Войти</a>
-                    <a href="/static/formNewUser.html" class="btn-outline">Зарегистрироваться</a>
+                    <a href="/static/FormNewUser.html" class="btn-outline">Зарегистрироваться</a>
                 </div>
                 <!-- Блок для авторизованного пользователя -->
-                <div id="user-profile" style="display: none;">
-                    <span id="username" style="color: var(--accent-color); font-weight: 600;"></span>
-                    <a href="/logout" class="btn-outline" style="margin-left: 10px;">Выйти</a>
+                <div id="user-profile">
+                    <span id="username"></span>
+                    <a href="/logout" class="btn-outline">Выйти</a>
                 </div>
             </nav>
         </div>
@@ -133,75 +133,35 @@
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2024 Crypto Analytics. Все права защищены.</p>
+            <p>&copy; 2025 Crypto Analytics. Все права защищены.</p>
         </div>
     </footer>
 
     <script>
-        // Простые обработчики для кнопок (задел на будущее)
-        document.addEventListener('DOMContentLoaded', function () {
-            // Кнопка "Топ криптовалют"
-            document.querySelector('a[href="#crypto-top"]').addEventListener('click', function (e) {
-                e.preventDefault();
-                alert('Раздел "Топ криптовалют" в разработке! Скоро здесь появится рейтинг криптовалют.');
-            });
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth/check', {
+                    credentials: 'include' // Отправляем куки
+                });
+                const data = await response.json();
 
-            // Кнопка "Предложить крипту" 
-            document.querySelector('a[href="#crypto-suggest"]').addEventListener('click', function (e) {
-                e.preventDefault();
-                alert('Функционал предложения криптовалют в разработке! Скоро вы сможете предлагать криптовалюты для анализа.');
-            });
-        });
-    </script>
-    <script>
-        // Функция проверки авторизации
-        function checkAuth() {
-            const authButtons = document.getElementById('auth-buttons');
-            const userProfile = document.getElementById('user-profile');
-            const usernameSpan = document.getElementById('username');
-
-            // Проверяем, есть ли пользователь в localStorage
-            const user = localStorage.getItem('currentUser');
-
-            if (user) {
-                // ПОЛЬЗОВАТЕЛЬ ВОШЕЛ - показываем профиль
-                usernameSpan.textContent = user;
-                userProfile.style.display = 'flex';
-                authButtons.style.display = 'none';
-            } else {
-                // ПОЛЬЗОВАТЕЛЬ НЕ ВОШЕЛ - показываем кнопки входа
-                authButtons.style.display = 'flex';
-                userProfile.style.display = 'none';
+                if (data.authenticated) {
+                    // Показываем профиль
+                    document.getElementById('username').textContent = data.username;
+                    document.getElementById('user-profile').style.display = 'flex';
+                    document.getElementById('auth-buttons').style.display = 'none';
+                } else {
+                    // Показываем кнопки входа
+                    document.getElementById('auth-buttons').style.display = 'flex';
+                    document.getElementById('user-profile').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
             }
         }
 
-        // Функция входа (будет вызываться после успешной авторизации)
-        function login(username) {
-            localStorage.setItem('currentUser', username);
-            checkAuth(); // Обновляем интерфейс
-        }
-
-        // Функция выхода
-        function logout() {
-            localStorage.removeItem('currentUser');
-            checkAuth(); // Обновляем интерфейс
-        }
-
-        // Проверяем авторизацию при загрузке страницы
-        document.addEventListener('DOMContentLoaded', function () {
-            checkAuth();
-
-            // Демо-код для тестирования (удалите в будущем)
-            console.log('Для теста: введите login("ВашеИмя") в консоли браузера');
-        });
-
-        // Временная функция для демонстрации (удалите когда будет настоящая авторизация)
-        function demoLogin() {
-            const username = prompt('Введите имя пользователя для демо:');
-            if (username) {
-                login(username);
-            }
-        }
+        // Вызываем при загрузке страницы
+        document.addEventListener('DOMContentLoaded', checkAuth);
     </script>
 </body>
 

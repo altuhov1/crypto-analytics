@@ -18,9 +18,14 @@ func NewUserService(userStorage storage.UserStorage) *UserService {
 
 // RegisterUser - регистрация нового пользователя
 func (s *UserService) RegisterUser(user *models.User) error {
-	err := s.userStorage.CreateUser(user)
+	var err error
+	user.Password, err = s.HashPassword(user.Password)
 	if err != nil {
-		// Добавляем контекст к ошибке
+		return fmt.Errorf("failed Hashing: %w", err)
+	}
+	err = s.userStorage.CreateUser(user)
+	if err != nil {
+
 		return fmt.Errorf("failed to register user: %w", err)
 	}
 	return nil
@@ -29,6 +34,9 @@ func (s *UserService) RegisterUser(user *models.User) error {
 // LoginUser - вход пользователя
 func (s *UserService) LoginUser(email, password string) (*models.User, error) {
 	// TODO: будет реализовывать на следующем этапе
+
+	//err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	//return err == nil
 	return nil, nil
 }
 
