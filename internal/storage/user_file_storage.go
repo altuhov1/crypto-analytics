@@ -21,7 +21,7 @@ func NewUserFileStorage(filename string) *UserFileStorage {
 	}
 }
 
-func (s *UserFileStorage) loadUsers() ([]*models.User, error) {
+func (s *UserFileStorage) LoadUsers() ([]*models.User, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -63,7 +63,7 @@ func (s *UserFileStorage) saveUsers(users []*models.User) error {
 }
 
 func (s *UserFileStorage) CreateUser(user *models.User) error {
-	users, err := s.loadUsers()
+	users, err := s.LoadUsers()
 	if err != nil {
 		return err
 	}
@@ -86,15 +86,14 @@ func (s *UserFileStorage) CreateUser(user *models.User) error {
 	return nil
 }
 
-func (s *UserFileStorage) GetUserByEmail(email string) (*models.User, error) {
-	users, err := s.loadUsers()
+func (s *UserFileStorage) GetUserByName(nameU string) (*models.User, error) {
+	users, err := s.LoadUsers()
 	if err != nil {
 		return nil, err
 	}
 
 	for _, user := range users {
-		if user.Email == email {
-			// Возвращаем копию пользователя для безопасности
+		if user.Username == nameU {
 			return &models.User{
 				Email:    user.Email,
 				Password: user.Password,
@@ -107,7 +106,7 @@ func (s *UserFileStorage) GetUserByEmail(email string) (*models.User, error) {
 }
 
 func (s *UserFileStorage) GetAllUsers() ([]*models.User, error) {
-	users, err := s.loadUsers()
+	users, err := s.LoadUsers()
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +124,7 @@ func (s *UserFileStorage) GetAllUsers() ([]*models.User, error) {
 }
 
 func (s *UserFileStorage) UpdateUser(updatedUser *models.User) error {
-	users, err := s.loadUsers()
+	users, err := s.LoadUsers()
 	if err != nil {
 		return err
 	}
@@ -150,7 +149,7 @@ func (s *UserFileStorage) UpdateUser(updatedUser *models.User) error {
 }
 
 func (s *UserFileStorage) DeleteUser(email string) error {
-	users, err := s.loadUsers()
+	users, err := s.LoadUsers()
 	if err != nil {
 		return err
 	}
@@ -168,7 +167,7 @@ func (s *UserFileStorage) DeleteUser(email string) error {
 
 // Дополнительный метод для проверки существования пользователя
 func (s *UserFileStorage) UserExists(email string) (bool, error) {
-	users, err := s.loadUsers()
+	users, err := s.LoadUsers()
 	if err != nil {
 		return false, err
 	}

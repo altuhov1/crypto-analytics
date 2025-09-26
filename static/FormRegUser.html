@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - CryptoAnalytics</title>
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+    <link rel="stylesheet" href="/static/css/form.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <h1>Вход в аккаунт</h1>
+            <p>Войдите для доступа к аналитике</p>
+        </div>
+
+        <!-- Блок для отображения ошибок -->
+        <div id="errorMessage" class="error-banner" style="display: none;"></div>
+
+        <form action="/login" method="POST" id="loginForm">
+            <div class="form-group">
+                <label for="username">Имя пользователя или Email:</label>
+                <input type="text" id="username" name="username" required placeholder="Введите логин или email">
+                <div class="error-message">Пожалуйста, введите имя пользователя или email</div>
+            </div>
+
+            <div class="form-group password-group">
+                <label for="password">Пароль:</label>
+                <input type="password" id="password" name="password" required placeholder="Введите пароль">
+                <button type="button" class="password-toggle" onclick="togglePassword()">👁️</button>
+                <div class="error-message">Пожалуйста, введите пароль</div>
+            </div>
+
+            <div class="password-options">
+                <a href="/forgot-password" class="forgot-password">Забыли пароль?</a>
+            </div>
+
+            <button type="submit" class="btn">Войти</button>
+
+            <div class="form-links">
+                <a href="/static/FormNewUser.html">Нет аккаунта?</a>
+                <a href="/">На главную</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = passwordInput.nextElementSibling;
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.textContent = '🔒';
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        }
+
+        // Валидация формы
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                e.preventDefault();
+                alert('Пожалуйста, заполните все обязательные поля!');
+            }
+        });
+
+        // Обработка query параметров
+        document.addEventListener('DOMContentLoaded', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorType = urlParams.get('err');
+
+            const errorElement = document.getElementById('errorMessage');
+
+            if (errorType === 'password') {
+                errorElement.innerHTML = `
+                    <span class="error-icon">⚠️</span>
+                    Неправильно введен пароль. Пожалуйста, попробуйте снова.
+                `;
+                errorElement.classList.add('has-icon');
+                errorElement.style.display = 'flex';
+                document.getElementById('password').focus();
+
+            } else if (errorType === 'nilUser') {
+                errorElement.innerHTML = `
+                    <span class="error-icon">👤</span>
+                    Пользователя с таким логином не существует
+                `;
+                errorElement.classList.add('has-icon');
+                errorElement.style.display = 'flex';
+                document.getElementById('username').focus();
+            }
+        });
+    </script>
+
+    <style>
+        .error-banner {
+            background: rgba(246, 70, 93, 0.1);
+            border: 1px solid var(--error-color);
+            color: var(--error-color);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 0.95rem;
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.3s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .error-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--error-color);
+        }
+
+        .error-banner::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                    rgba(246, 70, 93, 0.05) 0%,
+                    transparent 50%);
+            pointer-events: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Дополнительные стили для иконки ошибки */
+        .error-banner.has-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding-left: 20px;
+        }
+
+        .error-icon {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+    </style>
+
+</body>
+
+</html>

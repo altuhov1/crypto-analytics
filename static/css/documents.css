@@ -1,0 +1,135 @@
+:root {
+    --bg-primary: #0c0c0c;
+    --bg-secondary: #1a1a1a;
+    --bg-card: #1e1e1e;
+    --text-primary: #ffffff;
+    --text-secondary: #b7b7b7;
+    --accent-primary: #f0b90b;
+    --accent-secondary: #f8d33a;
+    --border-color: #2d2d2d;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    background-image:
+        radial-gradient(circle at 15% 50%, rgba(240, 185, 11, 0.1) 0%, transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(248, 211, 58, 0.05) 0%, transparent 25%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.header {
+    background: var(--bg-card);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.content-container {
+    background: var(--bg-card);
+    padding: 3rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    max-width: 900px;
+    margin: 0 auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+}
+
+.content-section {
+    margin-bottom: 2.5rem;
+}
+
+.content-section h2 {
+    color: var(--accent-primary);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.content-section h3 {
+    color: var(--accent-secondary);
+    font-size: 1.2rem;
+    margin: 1.5rem 0 0.5rem 0;
+}
+
+.content-section p {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    text-align: justify;
+}
+
+.content-section ul {
+    color: var(--text-secondary);
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.content-section li {
+    margin-bottom: 0.5rem;
+}
+
+.back-button {
+    display: inline-block;
+    padding: 12px 28px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: #000000;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 1rem;
+}
+
+.back-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(240, 185, 11, 0.3);
+}
+
+.footer {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-top: 3rem;
+    padding: 1rem;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .content-container {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+
+    .header {
+        padding: 1.5rem;
+    }
+
+    .header h1 {
+        font-size: 2rem;
+    }
+}

@@ -443,6 +443,10 @@ section h2::after {
     padding: 8px 16px;
     font-size: 0.9rem;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
 }
 
 #username {
@@ -463,4 +467,23 @@ section h2::after {
         flex-direction: column;
         gap: 0.5rem;
     }
+}
+
+/* Стили для навигационных кнопок */
+.nav-buttons {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.username {
+    color: var(--accent-color);
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    position: relative;
+    top: 2px;
+    /* Опускаем на 1 пиксель */
 }

@@ -222,3 +222,62 @@ textarea:invalid:not(:focus):not(:placeholder-shown)+.error-message {
     font-size: 3rem;
     margin-bottom: 1rem;
 }
+
+/* Дополнительные стили для страницы входа */
+.password-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.remember-me input {
+    width: auto;
+}
+
+.forgot-password {
+    color: var(--accent-primary);
+    text-decoration: none;
+}
+
+.forgot-password:hover {
+    color: var(--accent-secondary);
+    text-decoration: underline;
+}
+
+.error-message {
+    background-color: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    text-align: center;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+}
+
+.form-group .error-message {
+    display: none;
+    font-size: 12px;
+    color: #c33;
+    margin-top: 5px;
+}
+
+.form-group.error input {
+    border-color: #c33;
+}
+
+.form-group.error .error-message {
+    display: block;
+}

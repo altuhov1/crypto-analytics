@@ -54,6 +54,9 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
+	http.HandleFunc("/logout", handler.LogoutHandler)
+	http.HandleFunc("/login", handler.LoginHandler)
+	http.HandleFunc("/check-Sess-Id", handler.CheckAuthHandler)
 	http.HandleFunc("/register", handler.AuthUserFormHandler)
 	http.HandleFunc("/contact", handler.ContactFormHandler)
 	http.HandleFunc("/crypto-top", handler.CryptoTopHandler)

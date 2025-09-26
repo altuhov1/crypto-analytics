@@ -20,14 +20,16 @@
             </h1>
             <nav class="nav">
                 <a href="/static/contactForm.html" class="btn-outline">Связаться</a>
+
                 <!-- Блок для авторизации -->
-                <div id="auth-buttons">
-                    <a href="/static/login.html" class="btn-outline">Войти</a>
+                <div id="auth-buttons" class="nav-buttons">
+                    <a href="/static/FormRegUser.html" class="btn-outline">Войти</a>
                     <a href="/static/FormNewUser.html" class="btn-outline">Зарегистрироваться</a>
                 </div>
+
                 <!-- Блок для авторизованного пользователя -->
-                <div id="user-profile">
-                    <span id="username"></span>
+                <div id="user-profile" class="nav-buttons">
+                    <span id="username" class="username"></span>
                     <a href="/logout" class="btn-outline">Выйти</a>
                 </div>
             </nav>
@@ -140,7 +142,7 @@
     <script>
         async function checkAuth() {
             try {
-                const response = await fetch('/api/auth/check', {
+                const response = await fetch('/check-Sess-Id', {
                     credentials: 'include' // Отправляем куки
                 });
                 const data = await response.json();
