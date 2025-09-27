@@ -11,12 +11,13 @@ import (
 type Config struct {
 	ServerPort string
 	// Добавляем настройки DB
-	DBHost     string
-	DBPort     int
-	DBUser     string
-	DBPassword string
-	DBName     string
-	DBSSLMode  string
+	DBHost          string
+	DBPort          int
+	DBUser          string
+	DBPassword      string
+	DBName          string
+	DBSSLMode       string
+	KeyUsersGorilla string
 }
 
 func MustLoad() *Config {
@@ -33,15 +34,17 @@ func MustLoad() *Config {
 	dbPassword := getEnv("DB_PASSWORD", "1111")
 	dbName := getEnv("DB_NAME", "webdev")
 	dbSSLMode := getEnv("DB_SSLMODE", "disable")
+	KEY_USER_GORILLA := getEnv("DB_SSLMODE", "my-super-secret-key-12345")
 
 	return &Config{
-		ServerPort: port,
-		DBHost:     dbHost,
-		DBPort:     dbPort,
-		DBUser:     dbUser,
-		DBPassword: dbPassword,
-		DBName:     dbName,
-		DBSSLMode:  dbSSLMode,
+		ServerPort:      port,
+		DBHost:          dbHost,
+		DBPort:          dbPort,
+		DBUser:          dbUser,
+		DBPassword:      dbPassword,
+		DBName:          dbName,
+		DBSSLMode:       dbSSLMode,
+		KeyUsersGorilla: KEY_USER_GORILLA,
 	}
 }
 

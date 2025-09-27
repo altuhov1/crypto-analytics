@@ -73,6 +73,9 @@ func (s *UserFileStorage) CreateUser(user *models.User) error {
 		if u.Email == user.Email {
 			return fmt.Errorf("user already exists")
 		}
+		if u.Username == user.Username {
+			return fmt.Errorf("user name already exists")
+		}
 	}
 
 	// Добавляем пользователя

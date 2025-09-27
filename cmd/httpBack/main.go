@@ -46,7 +46,7 @@ func main() {
 	cryptoSvc := services.NewCryptoService(false, "storage/crypto_cache.json")
 
 	userSvc := services.NewUserService(fileSorageUser)
-	handler, err := handlers.NewHandler(pgStorage, notifier, cryptoSvc, userSvc)
+	handler, err := handlers.NewHandler(pgStorage, notifier, cryptoSvc, userSvc, cfg.KeyUsersGorilla)
 	if err != nil {
 		log.Fatal("Failed to create handler:", err)
 	}

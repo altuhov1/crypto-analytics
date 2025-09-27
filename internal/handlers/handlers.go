@@ -13,23 +13,25 @@ import (
 	"webdev-90-days/internal/models"
 	"webdev-90-days/internal/services"
 	"webdev-90-days/internal/storage"
+
+	"github.com/gorilla/sessions"
 )
 
-// Handler структурка, которая хранит зависимости (сервисы, хранилища)
-// Это называется "Dependency Injection"
 type Handler struct {
-	storage     storage.FormStorage
-	notifier    services.Notifier
-	cryptoSvc   *services.CryptoService // просто струкутра, тк не планирую второй серис
-	userService *services.UserService
-	tmpl        *template.Template
+	storage       storage.FormStorage
+	notifier      services.Notifier
+	cryptoSvc     *services.CryptoService // просто струкутра, тк не планирую второй серис
+	userService   *services.UserService
+	tmpl          *template.Template
+	storeSessions *sessions.CookieStore
 }
 
 // NewHandler создает новый экземпляр Handler
 func NewHandler(storage storage.FormStorage,
 	notifier services.Notifier,
 	cryptoSvc *services.CryptoService,
-	userService *services.UserService) (*Handler, error) {
+	userService *services.UserService,
+	KeyUsersGorilla string) (*Handler, error) {
 
 	tmpl := template.New("").Funcs(template.FuncMap{
 		"formatNumber": formatNumber,
@@ -49,6 +51,8 @@ func NewHandler(storage storage.FormStorage,
 		cryptoSvc:   cryptoSvc,
 		userService: userService,
 		tmpl:        tmpl,
+		storeSessions: sessions.NewCookieStore(
+			[]byte(KeyUsersGorilla)),
 	}, nil
 }
 

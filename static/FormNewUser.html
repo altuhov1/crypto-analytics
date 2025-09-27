@@ -17,6 +17,9 @@
             <p>Создайте аккаунт для доступа к аналитике</p>
         </div>
 
+        <!-- Блок для отображения ошибок -->
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+
         <form action="/register" method="POST" id="registerForm">
             <div class="form-group">
                 <label for="username">Имя пользователя:</label>
@@ -58,7 +61,7 @@
             <button type="submit" class="btn">Зарегистрироваться</button>
 
             <div class="form-links">
-                <a href="/login">Уже есть аккаунт?</a>
+                <a href="/static/FormRegUser.html">Уже есть аккаунт?</a>
                 <a href="/">На главную</a>
             </div>
         </form>
@@ -99,6 +102,30 @@
             if (password !== confirmPassword) {
                 e.preventDefault();
                 alert('Пароли не совпадают!');
+            }
+        });
+
+        // Функция для показа ошибки
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+
+            // Автоматическое скрытие через 5 секунд
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // Проверка query параметров при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorType = urlParams.get('err');
+
+            if (errorType === 'alreadyExistsName') {
+                showError('❌ Это имя пользователя уже занято. Пожалуйста, выберите другое.');
+            } else if (errorType === 'alreadyExistsAcc') {
+                showError('❌ Аккаунт с этой почтой уже существует. Попробуйте войти или восстановить пароль.');
             }
         });
     </script>

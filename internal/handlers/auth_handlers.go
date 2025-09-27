@@ -2,12 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
 	"webdev-90-days/internal/models"
+
+	"github.com/gorilla/sessions"
 )
 
 func (h *Handler) AuthUserFormHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,13 +39,24 @@ func (h *Handler) AuthUserFormHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// СОХРАНЕНИЕ
-	if err := h.userService.RegisterUser(contact); err != nil {
-		log.Printf("Ошибка сохранения: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	err := h.userService.RegisterUser(contact)
+	if err != nil {
+		fmt.Println("------", err, "------")
 
+		errText := err.Error()
+		switch {
+		case strings.Contains(errText, "user already exists"):
+			http.Redirect(w, r, "/static/FormNewUser.html?err=alreadyExistsName", http.StatusSeeOther)
+			return
+		case strings.Contains(errText, "user name already exists"):
+			http.Redirect(w, r, "/static/FormNewUser.html?err=alreadyExistsAcc", http.StatusSeeOther)
+			return
+		default:
+			log.Printf("Ошибка сохранения: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
 	// УВЕДОМЛЕНИЕ (асинхронно)
 	go h.notifier.NotifyAdmNewUserForm(contact)
 
@@ -52,27 +64,24 @@ func (h *Handler) AuthUserFormHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CheckAuthHandler(w http.ResponseWriter, r *http.Request) {
-	// Получаем sessionID из куков
-	cookie, err := r.Cookie("session_id")
+	session, err := h.storeSessions.Get(r, "user-session")
 	if err != nil {
-		http.Error(w, `{"authenticated": false}`, http.StatusOK)
+		// Если ошибка - считаем что не авторизован
+		json.NewEncoder(w).Encode(map[string]interface{}{"authenticated": false})
 		return
 	}
 
-	// Получаем IP и браузер
-	ip := strings.Split(r.RemoteAddr, ":")[0]
-	browser := r.UserAgent()
-
-	// Проверяем сессию
-	username, valid := h.userService.ValidateSession(cookie.Value, ip, browser)
-
-	if valid {
+	// 2. Проверяем, вошел ли пользователь
+	if auth, ok := session.Values["loggedIn"].(bool); ok && auth {
+		// 3. Если вошел - возвращаем имя пользователя
+		username := session.Values["username"].(string)
 		response := map[string]interface{}{
 			"authenticated": true,
 			"username":      username,
 		}
 		json.NewEncoder(w).Encode(response)
 	} else {
+		// 4. Если не вошел
 		response := map[string]interface{}{
 			"authenticated": false,
 		}
@@ -87,64 +96,34 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
-		return
-	}
-
-	// Получаем данные из формы
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
-	// Проверяем что данные не пустые
-	if username == "" || password == "" {
-		http.Error(w, "Username and password required", http.StatusBadRequest)
-		return
-	}
-	var ErrUserNotFound = errors.New("we have not this acc")
+	// Ваша проверка логина/пароля (оставьте как есть)
 	err := h.userService.LoginUser(username, password)
-	if errors.Is(err, ErrUserNotFound) {
-		// Обработка случая "пользователь не найден"
-	} else if err != nil {
+	if err != nil {
 		http.Redirect(w, r, "/static/FormRegUser.html?err=password", http.StatusSeeOther)
 		return
-		//обработка случая "пользователь найден, но"
 	}
 
-	// Создаем сессию
-	ip := strings.Split(r.RemoteAddr, ":")[0]
-	browser := r.UserAgent()
-	sessionID := h.userService.CreateSession(username, ip, browser)
+	// ПРОСТАЯ ЧАСТЬ: создаем сессию
+	session, _ := h.storeSessions.Get(r, "user-session")
+	session.Values["loggedIn"] = true
+	session.Values["username"] = username
+	session.Options = &sessions.Options{
+		HttpOnly: true,  // Защита от XSS
+		MaxAge:   86400, // Сессия на 1 день
+		Path:     "/",   // Действует для всего сайта
+	}
+	session.Save(r, w)
 
-	// Устанавливаем куку
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session_id",
-		Value:    sessionID,
-		Path:     "/",
-		MaxAge:   24 * 60 * 60,
-		HttpOnly: true,
-		Secure:   false, // true для HTTPS
-	})
-
-	// Перенаправляем на главную страницу
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (h *Handler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	// Если нужно удалить сессию из БД
-	if cookie, err := r.Cookie("session_id"); err == nil {
-		h.userService.DeleteSession(cookie.Value) // удаляем из БД
-	}
-
-	// Удаляем куку из браузера
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session_id",
-		Value:    "",
-		Path:     "/",
-		MaxAge:   -1,
-		HttpOnly: true,
-		Secure:   false,
-	})
+	session, _ := h.storeSessions.Get(r, "user-session")
+	session.Values["loggedIn"] = false
+	session.Save(r, w)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
