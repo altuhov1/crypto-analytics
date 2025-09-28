@@ -68,7 +68,6 @@ func (s *UserFileStorage) CreateUser(user *models.User) error {
 		return err
 	}
 
-	// Проверяем, существует ли пользователь с таким email
 	for _, u := range users {
 		if u.Email == user.Email {
 			return fmt.Errorf("user already exists")
@@ -108,78 +107,147 @@ func (s *UserFileStorage) GetUserByName(nameU string) (*models.User, error) {
 	return nil, fmt.Errorf("user not found")
 }
 
-func (s *UserFileStorage) GetAllUsers() ([]*models.User, error) {
+func (s *UserFileStorage) GetAllFavoriteCoins(nameU string) ([]string, error) {
 	users, err := s.LoadUsers()
 	if err != nil {
 		return nil, err
 	}
 
-	// Возвращаем копии пользователей без паролей для безопасности
-	result := make([]*models.User, len(users))
-	for i, user := range users {
-		result[i] = &models.User{
-			Email:    user.Email,
-			Password: "", // Не возвращаем пароли
-			Username: user.Username,
+	for _, user := range users {
+		if user.Username == nameU {
+			return user.FavoriteCoins, nil
 		}
 	}
-	return result, nil
+
+	return nil, fmt.Errorf("user not found")
 }
 
-func (s *UserFileStorage) UpdateUser(updatedUser *models.User) error {
+func (s *UserFileStorage) NewFavoriteCoin(nameU string, nameCoin string) error {
 	users, err := s.LoadUsers()
 	if err != nil {
 		return err
-	}
-
-	for i, user := range users {
-		if user.Email == updatedUser.Email {
-			// Если email изменился, проверяем уникальность нового email
-			if user.Email != updatedUser.Email {
-				for j, u := range users {
-					if i != j && u.Email == updatedUser.Email {
-						return fmt.Errorf("email already exists")
-					}
-				}
-			}
-
-			users[i] = updatedUser
-			return s.saveUsers(users)
-		}
-	}
-
-	return fmt.Errorf("user not found")
-}
-
-func (s *UserFileStorage) DeleteUser(email string) error {
-	users, err := s.LoadUsers()
-	if err != nil {
-		return err
-	}
-
-	for i, user := range users {
-		if user.Email == email {
-			// Удаляем пользователя из slice
-			users = append(users[:i], users[i+1:]...)
-			return s.saveUsers(users)
-		}
-	}
-
-	return fmt.Errorf("user not found")
-}
-
-// Дополнительный метод для проверки существования пользователя
-func (s *UserFileStorage) UserExists(email string) (bool, error) {
-	users, err := s.LoadUsers()
-	if err != nil {
-		return false, err
 	}
 
 	for _, user := range users {
-		if user.Email == email {
-			return true, nil
+		if user.Username == nameU {
+			for _, coin := range user.FavoriteCoins {
+				if coin == nameCoin {
+					return fmt.Errorf("coin already in list of favorite coins")
+				}
+			}
+			user.FavoriteCoins = append(user.FavoriteCoins, nameCoin)
+			if err := s.saveUsers(users); err != nil {
+				return err
+			}
+			return nil
 		}
 	}
 
-	return false, nil
+	return fmt.Errorf("user not found")
 }
+func (s *UserFileStorage) RemoveFavoriteCoin(nameU string, nameCoin string) error {
+	users, err := s.LoadUsers()
+	if err != nil {
+		return err
+	}
+
+	for _, user := range users {
+		if user.Username == nameU {
+			for i, coin := range user.FavoriteCoins {
+				if coin == nameCoin {
+					user.FavoriteCoins = removeElement(user.FavoriteCoins, i)
+					if err := s.saveUsers(users); err != nil {
+						return err
+					}
+					return nil
+				}
+			}
+			return fmt.Errorf("coin does not in list")
+		}
+	}
+
+	return fmt.Errorf("user not found")
+}
+
+func removeElement(slice []string, i int) []string {
+	if i < 0 || i >= len(slice) {
+		return slice // возвращаем исходный срез если индекс вне диапазона
+	}
+	return append(slice[:i], slice[i+1:]...)
+}
+
+// func (s *UserFileStorage) GetAllUsers() ([]*models.User, error) {
+// 	users, err := s.LoadUsers()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	// Возвращаем копии пользователей без паролей для безопасности
+// 	result := make([]*models.User, len(users))
+// 	for i, user := range users {
+// 		result[i] = &models.User{
+// 			Email:    user.Email,
+// 			Password: "", // Не возвращаем пароли
+// 			Username: user.Username,
+// 		}
+// 	}
+// 	return result, nil
+// }
+
+// func (s *UserFileStorage) UpdateUser(updatedUser *models.User) error {
+// 	users, err := s.LoadUsers()
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	for i, user := range users {
+// 		if user.Email == updatedUser.Email {
+// 			// Если email изменился, проверяем уникальность нового email
+// 			if user.Email != updatedUser.Email {
+// 				for j, u := range users {
+// 					if i != j && u.Email == updatedUser.Email {
+// 						return fmt.Errorf("email already exists")
+// 					}
+// 				}
+// 			}
+
+// 			users[i] = updatedUser
+// 			return s.saveUsers(users)
+// 		}
+// 	}
+
+// 	return fmt.Errorf("user not found")
+// }
+
+// func (s *UserFileStorage) DeleteUser(email string) error {
+// 	users, err := s.LoadUsers()
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	for i, user := range users {
+// 		if user.Email == email {
+// 			// Удаляем пользователя из slice
+// 			users = append(users[:i], users[i+1:]...)
+// 			return s.saveUsers(users)
+// 		}
+// 	}
+
+// 	return fmt.Errorf("user not found")
+// }
+
+// // Дополнительный метод для проверки существования пользователя
+// func (s *UserFileStorage) UserExists(email string) (bool, error) {
+// 	users, err := s.LoadUsers()
+// 	if err != nil {
+// 		return false, err
+// 	}
+
+// 	for _, user := range users {
+// 		if user.Email == email {
+// 			return true, nil
+// 		}
+// 	}
+
+// 	return false, nil
+// }

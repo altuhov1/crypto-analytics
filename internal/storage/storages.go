@@ -14,6 +14,7 @@ type FormStorage interface {
 type UserStorage interface {
 	CreateUser(user *models.User) error
 	GetUserByName(nameU string) (*models.User, error)
-	// UpdateUser(user *models.User) error
-	// DeleteUser(id int) error
+	GetAllFavoriteCoins(nameU string) ([]string, error)
+	NewFavoriteCoin(nameU string, nameCoin string) error
+	RemoveFavoriteCoin(nameU string, nameCoin string) error
 }

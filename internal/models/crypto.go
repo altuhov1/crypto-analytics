@@ -14,3 +14,8 @@ type Coin struct {
 
 // CoinGeckoResponse представляет ответ от CoinGecko API
 type CoinGeckoResponse []Coin
+
+type FavoriteRequest struct {
+	CoinID string `json:"coinId"`
+	Action string `json:"action"` // "add" или "remove"
+}

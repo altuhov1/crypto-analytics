@@ -36,7 +36,6 @@ func (s *UserService) RegisterUser(user *models.User) error {
 	return nil
 }
 
-// LoginUser - вход пользователя
 func (s *UserService) LoginUser(username, password string) error {
 	User, err := s.userStorage.GetUserByName(username)
 	if err != nil {
@@ -53,4 +52,27 @@ func (s *UserService) HashPassword(password string) (string, error) {
 		return "", err
 	}
 	return string(hashed), nil
+}
+
+func (s *UserService) AddFavorite(username, CoinID string) error {
+	err := s.userStorage.NewFavoriteCoin(username, CoinID)
+	if err != nil {
+		return fmt.Errorf("in AddFavorite: %w", err)
+	}
+	return nil
+}
+func (s *UserService) RemoveFavorite(username, CoinID string) error {
+	err := s.userStorage.RemoveFavoriteCoin(username, CoinID)
+	if err != nil {
+		return fmt.Errorf("in RemoveFavorite: %w", err)
+	}
+	return nil
+}
+
+func (s *UserService) GetFavorites(username string) ([]string, error) {
+	allFavC, err := s.userStorage.GetAllFavoriteCoins(username)
+	if err != nil {
+		return nil, fmt.Errorf("in RemoveFavorite: %w", err)
+	}
+	return allFavC, nil
 }

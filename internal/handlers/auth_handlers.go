@@ -11,6 +11,12 @@ import (
 	"github.com/gorilla/sessions"
 )
 
+type APIResponse struct {
+	Success bool        `json:"success"`
+	Message string      `json:"message,omitempty"`
+	Data    interface{} `json:"data,omitempty"`
+}
+
 func (h *Handler) AuthUserFormHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Обработка POST запроса на /register")
 
@@ -26,9 +32,10 @@ func (h *Handler) AuthUserFormHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	contact := &models.User{
-		Username: r.FormValue("username"),
-		Email:    r.FormValue("email"),
-		Password: r.FormValue("password"),
+		Username:      r.FormValue("username"),
+		Email:         r.FormValue("email"),
+		Password:      r.FormValue("password"),
+		FavoriteCoins: make([]string, 0),
 	}
 	fmt.Println(contact)
 
@@ -41,7 +48,6 @@ func (h *Handler) AuthUserFormHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := h.userService.RegisterUser(contact)
 	if err != nil {
-		fmt.Println("------", err, "------")
 
 		errText := err.Error()
 		switch {
@@ -57,7 +63,6 @@ func (h *Handler) AuthUserFormHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	// УВЕДОМЛЕНИЕ (асинхронно)
 	go h.notifier.NotifyAdmNewUserForm(contact)
 
 	http.Redirect(w, r, "/static/FormRegUser.html", http.StatusSeeOther)
@@ -126,4 +131,95 @@ func (h *Handler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	session.Save(r, w)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (h *Handler) ChangeFavorite(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	username, authenticated := h.getCurrentUser(r)
+	if !authenticated {
+		http.Error(w, "Not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	// Парсим JSON запрос
+	var req models.FavoriteRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	if req.Action == "add" {
+		err := h.userService.AddFavorite(username, req.CoinID)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Cant create", http.StatusBadRequest)
+			return
+		}
+	} else {
+		err := h.userService.RemoveFavorite(username, req.CoinID)
+		fmt.Println("flag")
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Cant create", http.StatusBadRequest)
+			return
+		}
+
+	}
+
+	// Возвращаем успех
+	response := map[string]interface{}{
+		"success": true,
+		"message": "Favorite updated successfully",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+// Обработчик получения списка избранного
+func (h *Handler) GetFavorites(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Проверяем авторизацию
+	username, authenticated := h.getCurrentUser(r)
+	if !authenticated {
+		http.Error(w, "Not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	favorites, err := h.userService.GetFavorites(username)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Cant create", http.StatusBadRequest)
+	}
+
+	response := APIResponse{
+		Success: true,
+		Message: "Favorites retrieved",
+		Data:    favorites,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+// Вспомогательный метод для получения текущего пользователя
+func (h *Handler) getCurrentUser(r *http.Request) (string, bool) {
+	session, err := h.storeSessions.Get(r, "user-session")
+	if err != nil {
+		return "", false
+	}
+
+	if auth, ok := session.Values["loggedIn"].(bool); !ok || !auth {
+		return "", false
+	}
+
+	username, ok := session.Values["username"].(string)
+	return username, ok
 }
