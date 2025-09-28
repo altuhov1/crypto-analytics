@@ -18,3 +18,9 @@ type UserStorage interface {
 	NewFavoriteCoin(nameU string, nameCoin string) error
 	RemoveFavoriteCoin(nameU string, nameCoin string) error
 }
+
+type NewsStorage interface {
+	AddNews([]models.NewsItem) error
+	GetAllNews() ([]models.NewsItem, error)
+	UpdateNews([]models.NewsItem) error
+}
