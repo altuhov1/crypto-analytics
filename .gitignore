@@ -13,7 +13,6 @@ coverage.*
 profile.cov
 
 bd/
-storage/
 go.work
 go.work.sum
 
@@ -21,3 +20,5 @@ go.work.sum
 
 .idea/
 .vscode/
+user.json
+crypto_cache.json
