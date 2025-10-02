@@ -1,7 +1,7 @@
 package models
 
 type NewsItem struct {
-	ID          int    `json:"id"`
+	GUID        string `json:"guid"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Link        string `json:"link"`

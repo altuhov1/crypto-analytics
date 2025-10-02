@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto News</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0c0c0c;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #b7b7b7;
+            --accent-primary: #f0b90b;
+            --accent-secondary: #f8d33a;
+            --border-color: #2d2d2d;
+            --error-color: #f6465d;
+            --success-color: #00c087;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(240, 185, 11, 0.1) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(248, 211, 58, 0.05) 0%, transparent 25%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo a {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            font-size: 1.8rem;
+            text-decoration: none;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav a:hover {
+            color: var(--accent-primary);
+        }
+
+        .nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            transition: width 0.3s ease;
+        }
+
+        .nav a:hover::after {
+            width: 100%;
+        }
+
+        .news-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px 40px;
+        }
+
+        .news-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        .news-header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .news-header p {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .news-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .news-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-primary);
+            box-shadow: 0 20px 40px rgba(240, 185, 11, 0.1);
+        }
+
+        .news-source {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .news-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .news-title a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .news-title a:hover {
+            color: var(--accent-primary);
+        }
+
+        .news-description {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-clamp: 3;
+            box-orient: vertical;
+        }
+
+        .news-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+        }
+
+        .news-date {
+            color: var(--accent-primary);
+        }
+
+        .no-news {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .no-news h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .refresh-info {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 768px) {
+            .news-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .news-header h1 {
+                font-size: 2.2rem;
+            }
+
+            .news-card {
+                padding: 1.5rem;
+            }
+
+            .container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav {
+                gap: 1.5rem;
+            }
+        }
+
+        .news-count {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .news-count strong {
+            color: var(--accent-primary);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <a href="/">CoinSight</a>
+            </h1>
+            <nav class="nav">
+                <a href="/">Главная</a>
+                <a href="/crypto-top">Топ криптовалют</a>
+                <a href="/news">Новости</a>
+                <a href="/contact">Контакты</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="news-container">
+        <div class="news-header">
+            <h1>🚀 Crypto News</h1>
+            <p>Latest updates from the cryptocurrency world</p>
+        </div>
+
+        {{if .News}}
+        <div class="news-count">
+            Latest <strong>{{len .News}}</strong> news articles
+        </div>
+
+        <div class="news-grid">
+            {{range .News}}
+            <article class="news-card">
+                <div class="news-source">{{.Source}}</div>
+                <h2 class="news-title">
+                    <a href="{{.Link}}" target="_blank" rel="noopener">{{.Title}}</a>
+                </h2>
+                <p class="news-description">{{stripHTML .Description}}</p>
+                <div class="news-meta">
+                    <span class="news-date">
+                        {{$parsedTime := parseTime .PublishedAt}}
+                        {{if $parsedTime}}
+                        {{$parsedTime.Format "January 2, 2006 • 15:04"}}
+                        {{else}}
+                        {{.PublishedAt}}
+                        {{end}}
+                    </span>
+                    <a href="{{.Link}}" target="_blank" rel="noopener"
+                        style="color: var(--accent-primary); text-decoration: none;">
+                        Read more →
+                    </a>
+                </div>
+            </article>
+            {{end}}
+        </div>
+        {{else}}
+        <div class="no-news">
+            <h2>No news available</h2>
+            <p>Check back later for the latest crypto updates</p>
+        </div>
+        {{end}}
+
+        <div class="refresh-info">
+            News are automatically updated every 3 hours
+        </div>
+    </div>
+
+    <script>
+        // Автоматическое обновление страницы каждые 30 минут
+        setTimeout(() => {
+            window.location.reload();
+        }, 30 * 60 * 1000);
+
+        // Плавное появление карточек
+        document.addEventListener('DOMContentLoaded', function () {
+            const cards = document.querySelectorAll('.news-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+
+</html>

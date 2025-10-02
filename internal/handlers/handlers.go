@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -24,6 +25,7 @@ type Handler struct {
 	userService   *services.UserService
 	tmpl          *template.Template
 	storeSessions *sessions.CookieStore
+	newsStorage   *services.NewsService
 }
 
 // NewHandler создает новый экземпляр Handler
@@ -31,16 +33,24 @@ func NewHandler(storage storage.FormStorage,
 	notifier services.Notifier,
 	cryptoSvc *services.CryptoService,
 	userService *services.UserService,
-	KeyUsersGorilla string) (*Handler, error) {
+	KeyUsersGorilla string,
+	newsStor *services.NewsService) (*Handler, error) {
 
 	tmpl := template.New("").Funcs(template.FuncMap{
 		"formatNumber": formatNumber,
 		"add":          add,
 		"formatMoney":  formatMoney,
+		"parseTime":    parseTime,
+		"stripHTML": func(html string) string {
+			// Простая очистка от HTML тегов
+			re := regexp.MustCompile(`<[^>]*>`)
+			return re.ReplaceAllString(html, "")
+		},
 	})
 	tmpl, err := tmpl.ParseFiles(
 		filepath.Join("static", "answerForm.html"),
 		filepath.Join("static", "crypto_top.html"),
+		filepath.Join("static", "news.html"),
 	)
 	if err != nil {
 		return nil, err
@@ -53,6 +63,7 @@ func NewHandler(storage storage.FormStorage,
 		tmpl:        tmpl,
 		storeSessions: sessions.NewCookieStore(
 			[]byte(KeyUsersGorilla)),
+		newsStorage: newsStor,
 	}, nil
 }
 

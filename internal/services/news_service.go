@@ -2,46 +2,167 @@ package services
 
 import (
 	"fmt"
+	"log"
+	"sort"
+	"time"
 	"webdev-90-days/internal/models"
+	"webdev-90-days/internal/storage"
 
 	"github.com/mmcdole/gofeed"
 )
 
 type NewsService struct {
-	Feeds map[string]string
+	feeds        map[string]string
+	store        storage.NewsStorage
+	fetchEnabled bool
 }
 
-func NewNewsService() *NewsService {
-	return &NewsService{
-		Feeds: map[string]string{
-			"https://www.coindesk.com/feed/": "coindesk",      // убраны лишние пробелы
-			"https://cointelegraph.com/rss":  "cointelegraph", // убраны лишние пробелы
-			"https://www.theblock.co/rss":    "theblock",      // убраны лишние пробелы
+func NewNewsService(store storage.NewsStorage, fetchEnabled bool) *NewsService {
+	service := &NewsService{
+		feeds: map[string]string{
+			"https://cointelegraph.com/rss": "cointelegraph",
+			// "https://www.coindesk.com/feed/": "coindesk",
+			// "https://www.theblock.co/rss": "theblock",
 		},
+		store:        store,
+		fetchEnabled: fetchEnabled,
+	}
+
+	// Запускаем фоновое обновление новостей
+	go service.startBackgroundUpdates()
+
+	return service
+}
+
+// startBackgroundUpdates запускает фоновое обновление новостей
+func (n *NewsService) startBackgroundUpdates() {
+	// Сразу обновляем при старте
+	n.updateNews()
+
+	// Затем обновляем каждые 3 часа
+	ticker := time.NewTicker(3 * time.Hour)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		n.updateNews()
 	}
 }
 
-func (n *NewsService) FetchAllNews() ([]models.NewsItem, error) {
-	store := make([]models.NewsItem, 0)
+// updateNews обновляет новости и сохраняет в хранилище
+func (n *NewsService) updateNews() {
+	if !n.fetchEnabled {
+		return
+	}
 
-	for k, v := range n.Feeds {
-		fp := gofeed.NewParser()
-		feed, err := fp.ParseURL(k)
+	log.Println("Starting news update...")
+
+	newsItems, err := n.fetchNewsFromFeeds()
+	if err != nil {
+		log.Printf("Error fetching news: %v", err)
+		return
+	}
+
+	if err := n.store.UpdateNews(newsItems); err != nil {
+		log.Printf("Error saving news: %v", err)
+		return
+	}
+
+	log.Printf("Successfully updated %d news items", len(newsItems))
+}
+
+// fetchNewsFromFeeds загружает новости из RSS-фидов
+func (n *NewsService) fetchNewsFromFeeds() ([]models.NewsItem, error) {
+	var allNews []models.NewsItem
+	fp := gofeed.NewParser()
+
+	for url, source := range n.feeds {
+		feed, err := fp.ParseURL(url)
 		if err != nil {
-			return nil, fmt.Errorf("cannot parse feed from %s: %v", v, err)
+			log.Printf("Warning: cannot parse feed from %s (%s): %v", source, url, err)
+			continue // Продолжаем с другими фидами при ошибке
 		}
+
 		for _, item := range feed.Items {
-			newNewsItem := models.NewsItem{
-				ID:          0, // Пока ставим 0, потом можно будет генерировать или брать из базы
+			newsItem := models.NewsItem{
+				GUID:        item.GUID,
 				Title:       item.Title,
 				Description: item.Description,
 				Link:        item.Link,
-				PublishedAt: item.Published, // обрати внимание: Published, а не PublishedAt
-				Source:      v,              // v — это имя источника (например, "coindesk")
+				PublishedAt: item.Published,
+				Source:      source,
 			}
-			store = append(store, newNewsItem)
+			allNews = append(allNews, newsItem)
 		}
 	}
 
-	return store, nil // Не забудь вернуть результат!
+	return allNews, nil
+}
+
+// GetNews возвращает все новости из хранилища, отсортированные по дате (сначала новые)
+func (n *NewsService) GetNews() ([]models.NewsItem, error) {
+	news, err := n.store.GetAllNews()
+	if err != nil {
+		return nil, err
+	}
+
+	// Сортируем новости по дате публикации (сначала новые)
+	sort.Slice(news, func(i, j int) bool {
+		timeI := n.parseTimeWithFallback(news[i].PublishedAt)
+		timeJ := n.parseTimeWithFallback(news[j].PublishedAt)
+
+		return timeI.After(timeJ)
+	})
+
+	return news, nil
+}
+
+// parseTimeWithFallback всегда возвращает time.Time (даже если парсинг не удался)
+func (n *NewsService) parseTimeWithFallback(timeStr string) time.Time {
+	if timeStr == "" {
+		return time.Time{} // нулевое время (очень старая дата)
+	}
+
+	formats := []string{
+		time.RFC1123,
+		time.RFC1123Z,
+		time.RFC822,
+		time.RFC822Z,
+		time.RFC3339,
+		"Mon, 2 Jan 2006 15:04:05 MST",
+		"Mon, 2 Jan 2006 15:04:05 -0700",
+		"02 Jan 2006 15:04:05 MST",
+	}
+
+	for _, format := range formats {
+		if t, err := time.Parse(format, timeStr); err == nil {
+			return t
+		}
+	}
+
+	// Если ни один формат не подошел, возвращаем нулевое время
+	log.Printf("Warning: unable to parse time, using fallback: %s", timeStr)
+	return time.Time{}
+}
+
+// ForceUpdate принудительно обновляет новости
+func (n *NewsService) ForceUpdate() error {
+	if !n.fetchEnabled {
+		return fmt.Errorf("fetch is disabled")
+	}
+
+	newsItems, err := n.fetchNewsFromFeeds()
+	if err != nil {
+		return err
+	}
+
+	return n.store.UpdateNews(newsItems)
+}
+
+// GetNewsCount возвращает количество новостей
+func (n *NewsService) GetNewsCount() (int, error) {
+	news, err := n.GetNews()
+	if err != nil {
+		return 0, err
+	}
+	return len(news), nil
 }

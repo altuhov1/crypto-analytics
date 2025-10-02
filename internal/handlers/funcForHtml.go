@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func formatNumber(num int64) string {
@@ -43,4 +44,35 @@ func formatMoney(amount float64) string {
 		result.WriteRune(char)
 	}
 	return "$" + result.String()
+}
+
+func parseTime(timeStr string) *time.Time {
+	if timeStr == "" {
+		return nil
+	}
+
+	formats := []string{
+		time.RFC1123,
+		time.RFC1123Z,
+		time.RFC822,
+		time.RFC822Z,
+		time.RFC3339,
+		"Mon, 2 Jan 2006 15:04:05 MST",
+		"Mon, 2 Jan 2006 15:04:05 -0700",
+		"02 Jan 2006 15:04:05 MST",
+		"2006-01-02 15:04:05 -0700",
+		time.ANSIC,
+		time.UnixDate,
+		time.RubyDate,
+		time.RFC850,
+		time.RFC1123,
+		time.RFC1123Z,
+	}
+
+	for _, format := range formats {
+		if t, err := time.Parse(format, timeStr); err == nil {
+			return &t
+		}
+	}
+	return nil
 }

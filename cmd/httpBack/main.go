@@ -45,15 +45,19 @@ func main() {
 	notifier := services.NewNotifier()
 	cryptoSvc := services.NewCryptoService(false, "storage/crypto_cache.json")
 
+	newsStorage := storage.NewNewsFileStorage("storage/news_cache.json")
+
+	newsService := services.NewNewsService(newsStorage, false)
+
 	userSvc := services.NewUserService(fileSorageUser)
-	handler, err := handlers.NewHandler(pgStorage, notifier, cryptoSvc, userSvc, cfg.KeyUsersGorilla)
+	handler, err := handlers.NewHandler(pgStorage, notifier, cryptoSvc, userSvc, cfg.KeyUsersGorilla, newsService)
 	if err != nil {
 		log.Fatal("Failed to create handler:", err)
 	}
 
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
-
+	http.HandleFunc("/news", handler.NewsPage)
 	http.HandleFunc("/api/allFavoriteCoin", handler.GetFavorites)
 	http.HandleFunc("/api/changeFavoriteCoin", handler.ChangeFavorite)
 	http.HandleFunc("/logout", handler.LogoutHandler)
