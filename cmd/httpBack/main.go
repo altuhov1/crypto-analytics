@@ -31,15 +31,20 @@ func main() {
 		SSLMode:  cfg.DBSSLMode,
 	}
 
-	pgStorage, err := storage.NewPGXStorage(configDB)
+	pgStorageContacts, err := storage.NewPGXStorage(configDB)
 	if err != nil {
 		log.Fatal("Ошибка подключения:", err)
 	}
-	defer pgStorage.Close()
+	defer pgStorageContacts.Close()
 
-	fileSorageUser := storage.NewUserFileStorage("storage/user.json")
+	pgSorageUser, err := storage.NewUserPostgresStorage(configDB)
+	if err != nil {
+		panic("can not connect to db's table of users")
+	} else {
+		defer pgSorageUser.Close()
+	}
 
-	if err := pgStorage.CheckAndCreateTables(); err != nil {
+	if err := pgStorageContacts.CheckAndCreateTables(); err != nil {
 		log.Fatal("Ошибка создания таблиц:", err)
 	}
 	notifier := services.NewNotifier()
@@ -49,14 +54,17 @@ func main() {
 
 	newsService := services.NewNewsService(newsStorage, false)
 
-	userSvc := services.NewUserService(fileSorageUser)
-	handler, err := handlers.NewHandler(pgStorage, notifier, cryptoSvc, userSvc, cfg.KeyUsersGorilla, newsService)
+	userSvc := services.NewUserService(pgSorageUser)
+	handler, err := handlers.NewHandler(pgStorageContacts, notifier, cryptoSvc, userSvc, cfg.KeyUsersGorilla, newsService)
 	if err != nil {
 		log.Fatal("Failed to create handler:", err)
 	}
 
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	http.HandleFunc("/api/printUserstInfo", handler.InfoOfUsers)
+	http.HandleFunc("/api/printContactInfo", handler.InfoOfContacts)
 	http.HandleFunc("/news", handler.NewsPage)
 	http.HandleFunc("/api/allFavoriteCoin", handler.GetFavorites)
 	http.HandleFunc("/api/changeFavoriteCoin", handler.ChangeFavorite)

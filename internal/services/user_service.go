@@ -76,3 +76,11 @@ func (s *UserService) GetFavorites(username string) ([]string, error) {
 	}
 	return allFavC, nil
 }
+
+func (s *UserService) PrintJsonAllUsers(fileName string) error {
+	err := s.userStorage.ExportUsersToJSON(fileName)
+	if err != nil {
+		return fmt.Errorf("we cant save in json: %w", err)
+	}
+	return nil
+}

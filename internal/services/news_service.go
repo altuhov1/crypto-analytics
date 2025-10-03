@@ -20,9 +20,9 @@ type NewsService struct {
 func NewNewsService(store storage.NewsStorage, fetchEnabled bool) *NewsService {
 	service := &NewsService{
 		feeds: map[string]string{
-			"https://cointelegraph.com/rss": "cointelegraph",
-			// "https://www.coindesk.com/feed/": "coindesk",
-			// "https://www.theblock.co/rss": "theblock",
+			"https://cointelegraph.com/rss":                   "cointelegraph",
+			"https://www.coindesk.com/arc/outboundfeeds/rss/": "coindesk",
+			"https://www.theblock.co/feed/rss":                "theblock",
 		},
 		store:        store,
 		fetchEnabled: fetchEnabled,

@@ -6,8 +6,7 @@ import "webdev-90-days/internal/models"
 // Storage определяет контракт для работы с данными
 type FormStorage interface {
 	SaveContactFrom(contact *models.ContactForm) error
-	// GetContact(id int) (*models.ContactForm, error) // На будущее
-	// GetAllContacts() ([]*models.ContactForm, error) // На будущее
+	ExportContactsToJSON(filename string) error
 	Close() error // Для закрытия соединений
 }
 
@@ -17,6 +16,7 @@ type UserStorage interface {
 	GetAllFavoriteCoins(nameU string) ([]string, error)
 	NewFavoriteCoin(nameU string, nameCoin string) error
 	RemoveFavoriteCoin(nameU string, nameCoin string) error
+	ExportUsersToJSON(filename string) error
 }
 
 type NewsStorage interface {

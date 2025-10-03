@@ -153,3 +153,8 @@ func (h *Handler) CacheInfoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(info)
 }
+
+func (h *Handler) InfoOfContacts(w http.ResponseWriter, r *http.Request) {
+	h.storage.ExportContactsToJSON("storage/info_contacts.json")
+	fmt.Fprint(w, "OK")
+}
