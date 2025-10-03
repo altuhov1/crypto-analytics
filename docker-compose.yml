@@ -19,11 +19,18 @@ services:
 
   app:
     build: .
+
+  caddy:
+    image: caddy:2-alpine
     ports:
-      - "8080:8080"
+      - "3000:8080"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./static:/usr/share/caddy # твоя папка со статикой
     depends_on:
-      postgres:
-        condition: service_healthy # ← ИЗМЕНИ ЭТУ СТРОКУ
+      - app
+    networks:
+      - default # используем дефолтную сеть
 
 volumes:
   postgres_data:
