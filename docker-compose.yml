@@ -3,11 +3,27 @@ services:
     image: postgres:15
     environment:
       POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: cryptodb
     ports:
       - "5432:5432"
     volumes:
       - ./docker/postgres/init-scripts:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # ← ДОБАВЬ ЭТОТ БЛОК
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy # ← ИЗМЕНИ ЭТУ СТРОКУ
 
 volumes:
   postgres_data:
