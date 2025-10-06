@@ -39,7 +39,6 @@ func (h *Handler) AuthUserFormHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(contact)
 
-	// ВАЛИДАЦИЯ
 	if contact.Username == "" || contact.Email == "" || contact.Password == "" {
 		log.Printf("Невалидные данные: %+v", contact)
 		http.Error(w, "All fields are required", http.StatusBadRequest)
@@ -76,9 +75,7 @@ func (h *Handler) CheckAuthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 2. Проверяем, вошел ли пользователь
 	if auth, ok := session.Values["loggedIn"].(bool); ok && auth {
-		// 3. Если вошел - возвращаем имя пользователя
 		username := session.Values["username"].(string)
 		response := map[string]interface{}{
 			"authenticated": true,
@@ -86,7 +83,6 @@ func (h *Handler) CheckAuthHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		json.NewEncoder(w).Encode(response)
 	} else {
-		// 4. Если не вошел
 		response := map[string]interface{}{
 			"authenticated": false,
 		}
@@ -111,7 +107,6 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// ПРОСТАЯ ЧАСТЬ: создаем сессию
 	session, _ := h.storeSessions.Get(r, "user-session")
 	session.Values["loggedIn"] = true
 	session.Values["username"] = username
@@ -169,7 +164,6 @@ func (h *Handler) ChangeFavorite(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	// Возвращаем успех
 	response := map[string]interface{}{
 		"success": true,
 		"message": "Favorite updated successfully",
@@ -179,14 +173,12 @@ func (h *Handler) ChangeFavorite(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// Обработчик получения списка избранного
 func (h *Handler) GetFavorites(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Проверяем авторизацию
 	username, authenticated := h.getCurrentUser(r)
 	if !authenticated {
 		http.Error(w, "Not authenticated", http.StatusUnauthorized)

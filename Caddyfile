@@ -1,16 +1,4 @@
 :8080 {
-    # Добавляем настройки для стабильности
-    reverse_proxy http://app:8080 {
-        # Увеличиваем таймауты
-        transport http {
-            dial_timeout 10s
-            response_header_timeout 30s
-        }
-    }
-    
-    # Сжимаем ответы
+    reverse_proxy http://app:8080
     encode gzip
-    
-    # Логи для отладки
-    log
 }

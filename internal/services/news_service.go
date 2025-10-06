@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"log"
 	"sort"
 	"time"
@@ -34,7 +33,6 @@ func NewNewsService(store storage.NewsStorage, fetchEnabled bool) *NewsService {
 	return service
 }
 
-// startBackgroundUpdates запускает фоновое обновление новостей
 func (n *NewsService) startBackgroundUpdates() {
 	// Сразу обновляем при старте
 	n.updateNews()
@@ -70,7 +68,6 @@ func (n *NewsService) updateNews() {
 	log.Printf("Successfully updated %d news items", len(newsItems))
 }
 
-// fetchNewsFromFeeds загружает новости из RSS-фидов
 func (n *NewsService) fetchNewsFromFeeds() ([]models.NewsItem, error) {
 	var allNews []models.NewsItem
 	fp := gofeed.NewParser()
@@ -98,7 +95,6 @@ func (n *NewsService) fetchNewsFromFeeds() ([]models.NewsItem, error) {
 	return allNews, nil
 }
 
-// GetNews возвращает все новости из хранилища, отсортированные по дате (сначала новые)
 func (n *NewsService) GetNews() ([]models.NewsItem, error) {
 	news, err := n.store.GetAllNews()
 	if err != nil {
@@ -116,7 +112,6 @@ func (n *NewsService) GetNews() ([]models.NewsItem, error) {
 	return news, nil
 }
 
-// parseTimeWithFallback всегда возвращает time.Time (даже если парсинг не удался)
 func (n *NewsService) parseTimeWithFallback(timeStr string) time.Time {
 	if timeStr == "" {
 		return time.Time{} // нулевое время (очень старая дата)
@@ -144,21 +139,6 @@ func (n *NewsService) parseTimeWithFallback(timeStr string) time.Time {
 	return time.Time{}
 }
 
-// ForceUpdate принудительно обновляет новости
-func (n *NewsService) ForceUpdate() error {
-	if !n.fetchEnabled {
-		return fmt.Errorf("fetch is disabled")
-	}
-
-	newsItems, err := n.fetchNewsFromFeeds()
-	if err != nil {
-		return err
-	}
-
-	return n.store.UpdateNews(newsItems)
-}
-
-// GetNewsCount возвращает количество новостей
 func (n *NewsService) GetNewsCount() (int, error) {
 	news, err := n.GetNews()
 	if err != nil {

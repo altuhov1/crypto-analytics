@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,6 +18,9 @@ import (
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	textLogger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(textLogger)
 
 	// Загружаем конфигурацию
 	cfg := config.MustLoad()
@@ -33,7 +37,8 @@ func main() {
 
 	pgStorageContacts, err := storage.NewPGXStorage(configDB)
 	if err != nil {
-		log.Fatal("Ошибка подключения:", err)
+		slog.Error("Ошибка подключения", "error", err)
+		os.Exit(1)
 	}
 	defer pgStorageContacts.Close()
 
@@ -45,7 +50,8 @@ func main() {
 	}
 
 	if err := pgStorageContacts.CheckAndCreateTables(); err != nil {
-		log.Fatal("Ошибка создания таблиц:", err)
+		slog.Error("Ошибка создания таблиц:", "error", err)
+		os.Exit(1)
 	}
 	notifier := services.NewNotifier()
 	cryptoSvc := services.NewCryptoService(false, "storage/crypto_cache.json")
@@ -57,29 +63,30 @@ func main() {
 	userSvc := services.NewUserService(pgSorageUser)
 	handler, err := handlers.NewHandler(pgStorageContacts, notifier, cryptoSvc, userSvc, cfg.KeyUsersGorilla, newsService)
 	if err != nil {
-		log.Fatal("Failed to create handler:", err)
+		slog.Error("Failed to create handler:", "error", err)
+		os.Exit(1)
 	}
 
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	http.HandleFunc("/api/printUserstInfo", handler.InfoOfUsers)
-	http.HandleFunc("/api/printContactInfo", handler.InfoOfContacts)
 	http.HandleFunc("/news", handler.NewsPage)
-	http.HandleFunc("/api/allFavoriteCoin", handler.GetFavorites)
-	http.HandleFunc("/api/changeFavoriteCoin", handler.ChangeFavorite)
 	http.HandleFunc("/logout", handler.LogoutHandler)
 	http.HandleFunc("/login", handler.LoginHandler)
 	http.HandleFunc("/check-Sess-Id", handler.CheckAuthHandler)
 	http.HandleFunc("/register", handler.AuthUserFormHandler)
 	http.HandleFunc("/contact", handler.ContactFormHandler)
 	http.HandleFunc("/crypto-top", handler.CryptoTopHandler)
+
+	http.HandleFunc("/api/allFavoriteCoin", handler.GetFavorites)
+	http.HandleFunc("/api/changeFavoriteCoin", handler.ChangeFavorite)
+	http.HandleFunc("/api/printUserstInfo", handler.InfoOfUsers)
+	http.HandleFunc("/api/printContactInfo", handler.InfoOfContacts)
 	http.HandleFunc("/api/cache-info", handler.CacheInfoHandler)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// Если запрос не к корню - отдаем 404
 		if r.URL.Path != "/" {
-			http.NotFound(w, r)
+			http.NotFound(w, r) //404
 			return
 		}
 		http.ServeFile(w, r, "static/index.html")
@@ -90,32 +97,30 @@ func main() {
 		Addr:         ":" + cfg.ServerPort,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  30 * time.Second,
 	}
 
-	// Запускаем сервер в горутине
 	go func() {
 		log.Printf("Server starting on %s", srv.Addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server failed: %v", err)
+			slog.Error("Server failed", "error", err)
+			os.Exit(1)
 		}
 	}()
 
-	// Канал для перехвата сигналов ОС
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
-	// Ждем сигнал о завершении
 	<-stop
-	log.Println("Shutting down server gracefully...")
+	slog.Info("Shutting down server gracefully...")
 
-	// Создаем контекст с таймаутом для graceful shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Останавливаем сервер
+	// Останавливаем tcp подключения
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+		slog.Error("Server forced to shutdown:", "error", err)
+		os.Exit(1)
 	}
-
-	log.Println("Server stopped")
+	slog.Info("Server stopped")
 }

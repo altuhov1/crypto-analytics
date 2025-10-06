@@ -19,6 +19,9 @@ services:
 
   app:
     build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   caddy:
     image: caddy:2-alpine
@@ -26,11 +29,11 @@ services:
       - "3000:8080"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./static:/usr/share/caddy # твоя папка со статикой
+      - ./static:/usr/share/caddy
     depends_on:
       - app
     networks:
-      - default # используем дефолтную сеть
+      - default
 
 volumes:
   postgres_data:

@@ -21,7 +21,7 @@ import (
 type Handler struct {
 	storage       storage.FormStorage
 	notifier      services.Notifier
-	cryptoSvc     *services.CryptoService // просто струкутра, тк не планирую второй серис
+	cryptoSvc     *services.CryptoService
 	userService   *services.UserService
 	tmpl          *template.Template
 	storeSessions *sessions.CookieStore
@@ -88,14 +88,12 @@ func (h *Handler) ContactFormHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(contact)
 
-	// ВАЛИДАЦИЯ
 	if contact.Name == "" || contact.Email == "" || contact.Message == "" {
 		log.Printf("Невалидные данные: %+v", contact)
 		http.Error(w, "All fields are required", http.StatusBadRequest)
 		return
 	}
 
-	// СОХРАНЕНИЕ
 	if err := h.storage.SaveContactFrom(&contact); err != nil {
 		log.Printf("Ошибка сохранения: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -105,7 +103,6 @@ func (h *Handler) ContactFormHandler(w http.ResponseWriter, r *http.Request) {
 	// УВЕДОМЛЕНИЕ (асинхронно)
 	go h.notifier.NotifyAdmContForm(&contact)
 
-	// ОТВЕТ ПОЛЬЗОВАТЕЛЮ
 	data := struct{ Name string }{Name: contact.Name}
 	if err := h.tmpl.ExecuteTemplate(w, "answerForm.html", data); err != nil {
 		log.Printf("Ошибка рендеринга шаблона: %v", err)
@@ -114,7 +111,6 @@ func (h *Handler) ContactFormHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CryptoTopHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Обработка запроса на /crypto-top")
 
 	// Получаем параметр limit из query string (по умолчанию 10)
 	limitStr := r.URL.Query().Get("limit")

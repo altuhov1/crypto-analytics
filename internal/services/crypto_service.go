@@ -15,10 +15,10 @@ import (
 type CryptoService struct {
 	baseURL    string
 	client     *http.Client
-	cache      []models.Coin // Кэш данных
-	cacheMutex sync.RWMutex  // Мьютекс для потокобезопасности
-	cacheTime  time.Time     // Время последнего обновления
-	cacheFile  string        // Файл для кэширования
+	cache      []models.Coin 
+	cacheMutex sync.RWMutex  
+	cacheTime  time.Time     
+	cacheFile  string    
 	useAPI     bool          // Режим работы: true - API, false - файл
 }
 
@@ -42,7 +42,6 @@ func NewCryptoService(useAPI bool, cacheFile string) *CryptoService {
 	return svc
 }
 
-// loadFromFile загружает данные из файла
 func (s *CryptoService) loadFromFile() error {
 	s.cacheMutex.Lock()
 	defer s.cacheMutex.Unlock()
@@ -61,7 +60,6 @@ func (s *CryptoService) loadFromFile() error {
 	return nil
 }
 
-// saveToFile сохраняет данные в файл
 func (s *CryptoService) saveToFile() error {
 	s.cacheMutex.RLock()
 	defer s.cacheMutex.RUnlock()
@@ -108,7 +106,6 @@ func (s *CryptoService) startCacheUpdater() {
 	}
 }
 
-// getTopCryptosFromAPI приватный метод для запроса к API
 func (s *CryptoService) getTopCryptosFromAPI(limit int) ([]models.Coin, error) {
 	url := fmt.Sprintf("%s/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=%d&page=1&sparkline=false",
 		s.baseURL, limit)
@@ -130,7 +127,6 @@ func (s *CryptoService) getTopCryptosFromAPI(limit int) ([]models.Coin, error) {
 	return coins, nil
 }
 
-// GetTopCryptos теперь отдает данные из кэша!
 func (s *CryptoService) GetTopCryptos(limit int) ([]models.Coin, error) {
 	s.cacheMutex.RLock()
 	defer s.cacheMutex.RUnlock()
@@ -147,7 +143,6 @@ func (s *CryptoService) GetTopCryptos(limit int) ([]models.Coin, error) {
 	return s.cache[:limit], nil
 }
 
-// GetCacheInfo возвращает информацию о кэше
 func (s *CryptoService) GetCacheInfo() (int, time.Time) {
 	s.cacheMutex.RLock()
 	defer s.cacheMutex.RUnlock()
