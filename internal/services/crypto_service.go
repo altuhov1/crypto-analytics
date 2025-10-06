@@ -3,7 +3,7 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"sync"
@@ -15,11 +15,11 @@ import (
 type CryptoService struct {
 	baseURL    string
 	client     *http.Client
-	cache      []models.Coin 
-	cacheMutex sync.RWMutex  
-	cacheTime  time.Time     
-	cacheFile  string    
-	useAPI     bool          // Режим работы: true - API, false - файл
+	cache      []models.Coin
+	cacheMutex sync.RWMutex
+	cacheTime  time.Time
+	cacheFile  string
+	useAPI     bool // Режим работы: true - API, false - файл
 }
 
 func NewCryptoService(useAPI bool, cacheFile string) *CryptoService {
@@ -56,7 +56,9 @@ func (s *CryptoService) loadFromFile() error {
 	}
 
 	s.cacheTime = time.Now()
-	log.Printf("Загружено %d монет из файла %s", len(s.cache), s.cacheFile)
+	slog.Info("Загружены моенты из файла",
+		"кол", len(s.cache),
+		"из файла", s.cacheFile)
 	return nil
 }
 
@@ -72,8 +74,9 @@ func (s *CryptoService) saveToFile() error {
 	if err := os.WriteFile(s.cacheFile, data, 0644); err != nil {
 		return fmt.Errorf("ошибка записи файла: %w", err)
 	}
-
-	log.Printf("Сохранено %d монет в файл %s", len(s.cache), s.cacheFile)
+	slog.Info("Сохранены монеты в файл",
+		"кол", len(s.cache),
+		"из файла", s.cacheFile)
 	return nil
 }
 
@@ -81,7 +84,7 @@ func (s *CryptoService) saveToFile() error {
 func (s *CryptoService) refreshCache() {
 	coins, err := s.getTopCryptosFromAPI(250)
 	if err != nil {
-		log.Printf("Ошибка обновления кэша: %v", err)
+		slog.Error("Ошибка обновления кэша:", "error", err)
 		return
 	}
 
@@ -92,10 +95,10 @@ func (s *CryptoService) refreshCache() {
 
 	// Сохраняем в файл для будущего использования
 	if err := s.saveToFile(); err != nil {
-		log.Printf("Ошибка сохранения в файл: %v", err)
+		slog.Error("Ошибка сохранения в файл:", "error", err)
 	}
-
-	log.Printf("Кэш обновлен. Загружено %d монет", len(coins))
+	slog.Info("Кэш обновлен.",
+		"кол монет загружено", len(coins))
 }
 
 func (s *CryptoService) startCacheUpdater() {

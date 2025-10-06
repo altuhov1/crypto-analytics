@@ -1,7 +1,7 @@
 package services
 
 import (
-	"log"
+	"log/slog"
 	"sort"
 	"time"
 	"webdev-90-days/internal/models"
@@ -51,21 +51,22 @@ func (n *NewsService) updateNews() {
 	if !n.fetchEnabled {
 		return
 	}
-
-	log.Println("Starting news update...")
+	slog.Info("Starting news update...")
 
 	newsItems, err := n.fetchNewsFromFeeds()
 	if err != nil {
-		log.Printf("Error fetching news: %v", err)
+		slog.Error("Error fetching news", "error", err)
 		return
 	}
 
 	if err := n.store.UpdateNews(newsItems); err != nil {
-		log.Printf("Error saving news: %v", err)
+
+		slog.Error("Error saving news", "error", err)
 		return
 	}
 
-	log.Printf("Successfully updated %d news items", len(newsItems))
+	slog.Info("Successfully updated news items",
+		"amount", len(newsItems))
 }
 
 func (n *NewsService) fetchNewsFromFeeds() ([]models.NewsItem, error) {
@@ -75,7 +76,7 @@ func (n *NewsService) fetchNewsFromFeeds() ([]models.NewsItem, error) {
 	for url, source := range n.feeds {
 		feed, err := fp.ParseURL(url)
 		if err != nil {
-			log.Printf("Warning: cannot parse feed from %s (%s): %v", source, url, err)
+			slog.Warn("Warning: cannot parse feed from", "error", err)
 			continue // Продолжаем с другими фидами при ошибке
 		}
 
@@ -134,8 +135,6 @@ func (n *NewsService) parseTimeWithFallback(timeStr string) time.Time {
 		}
 	}
 
-	// Если ни один формат не подошел, возвращаем нулевое время
-	log.Printf("Warning: unable to parse time, using fallback: %s", timeStr)
 	return time.Time{}
 }
 

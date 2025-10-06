@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"time"
 
@@ -69,60 +69,35 @@ func (s *PGXStorage) SaveContactFrom(contact *models.ContactForm) error {
 	defer cancel()
 
 	// Логируем данные которые пытаемся сохранить
-	log.Printf("Attempting to save: Name=%s, Email=%s, Message=%s",
-		contact.Name, contact.Email, contact.Message)
+	slog.Info("Attempting to save contact",
+		"name", contact.Name,
+		"email", contact.Email,
+		"message", contact.Message,
+	)
 
 	// Выполняем INSERT
 	result, err := s.pool.Exec(ctx, query, contact.Name, contact.Email, contact.Message)
 	if err != nil {
 		// Детальное логирование ошибки
-		log.Printf("SQL Error: %v", err)
-		log.Printf("Query: %s", query)
-		log.Printf("Params: %s, %s, %s", contact.Name, contact.Email, contact.Message)
+		slog.Error("SQL query execution failed",
+			"error", err,
+			"query", query,
+			"params", []string{contact.Name, contact.Email, contact.Message},
+		)
 		return fmt.Errorf("ошибка сохранения: %w", err)
 	}
 
 	// Логируем результат
 	rowsAffected := result.RowsAffected()
-	log.Printf("Save successful. Rows affected: %d", rowsAffected)
+	slog.Info("Contact saved successfully",
+		"rows_affected", rowsAffected,
+	)
 
 	return nil
 }
 
 func (s *PGXStorage) Close() error {
 	s.pool.Close()
-	return nil
-}
-
-func (s *PGXStorage) CheckAndCreateTables() error {
-	// Проверяем существует ли таблица contacts
-	var tableExists bool
-	err := s.pool.QueryRow(context.Background(),
-		"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'contacts')",
-	).Scan(&tableExists)
-
-	if err != nil {
-		return err
-	}
-
-	if !tableExists {
-		log.Println("Таблица contacts не найдена, создаем...")
-		// Создаем таблицу
-		_, err = s.pool.Exec(context.Background(), `
-            CREATE TABLE contacts (
-                id SERIAL PRIMARY KEY,
-                name TEXT NOT NULL,
-                email TEXT NOT NULL,
-                message TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `)
-		if err != nil {
-			return err
-		}
-		log.Println("Таблица contacts создана")
-	}
-
 	return nil
 }
 
@@ -164,7 +139,7 @@ func (s *PGXStorage) ExportContactsToJSON(filename string) error {
 
 		err := rows.Scan(&contact.ID, &contact.Name, &contact.Email, &contact.Message, &contact.CreatedAt)
 		if err != nil {
-			log.Printf("Ошибка чтения строки: %v", err)
+			slog.Warn("Ошибка чтения строки:", "error", err)
 			continue
 		}
 
@@ -192,7 +167,11 @@ func (s *PGXStorage) ExportContactsToJSON(filename string) error {
 		return fmt.Errorf("ошибка кодирования JSON: %w", err)
 	}
 
-	log.Printf("Экспорт завершен. Экспортировано %d контактов в JSON файл: %s", contactCount, filename)
+	slog.Info("Export completed successfully",
+		"contacts_exported", contactCount,
+		"filename", filename,
+		"format", "json",
+	)
 	return nil
 }
 

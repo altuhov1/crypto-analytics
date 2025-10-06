@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"path/filepath"
 	"regexp"
@@ -68,7 +68,6 @@ func NewHandler(storage storage.FormStorage,
 }
 
 func (h *Handler) ContactFormHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Обработка POST запроса на /Contact")
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -76,7 +75,7 @@ func (h *Handler) ContactFormHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseForm(); err != nil {
-		log.Printf("Ошибка парсинга формы: %v", err)
+		slog.Warn("Ошибка парсинга формы:", "error", err)
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return
 	}
@@ -89,13 +88,12 @@ func (h *Handler) ContactFormHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(contact)
 
 	if contact.Name == "" || contact.Email == "" || contact.Message == "" {
-		log.Printf("Невалидные данные: %+v", contact)
 		http.Error(w, "All fields are required", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.storage.SaveContactFrom(&contact); err != nil {
-		log.Printf("Ошибка сохранения: %v", err)
+		slog.Warn("Ошибка сохранения:", "error", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -105,7 +103,7 @@ func (h *Handler) ContactFormHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := struct{ Name string }{Name: contact.Name}
 	if err := h.tmpl.ExecuteTemplate(w, "answerForm.html", data); err != nil {
-		log.Printf("Ошибка рендеринга шаблона: %v", err)
+		slog.Warn("Ошибка рендаренга", "error", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
 }
@@ -124,7 +122,7 @@ func (h *Handler) CryptoTopHandler(w http.ResponseWriter, r *http.Request) {
 	// Получаем данные из CoinGecko
 	coins, err := h.cryptoSvc.GetTopCryptos(limit)
 	if err != nil {
-		log.Printf("Ошибка получения криптовалют: %v", err)
+		slog.Warn("Ошибка получения криптовалюты:", "error", err)
 		http.Error(w, "Временные проблемы с получением данных", http.StatusInternalServerError)
 		return
 	}
@@ -132,7 +130,7 @@ func (h *Handler) CryptoTopHandler(w http.ResponseWriter, r *http.Request) {
 	// Рендерим шаблон
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := h.tmpl.ExecuteTemplate(w, "crypto_top.html", coins); err != nil {
-		log.Printf("Ошибка рендеринга шаблона: %v", err)
+		slog.Warn("Ошибка рендеринга шаблона:", "error", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
 }

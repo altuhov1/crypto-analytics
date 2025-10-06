@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -17,7 +16,7 @@ import (
 )
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	// log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	textLogger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	slog.SetDefault(textLogger)
@@ -49,10 +48,6 @@ func main() {
 		defer pgSorageUser.Close()
 	}
 
-	if err := pgStorageContacts.CheckAndCreateTables(); err != nil {
-		slog.Error("Ошибка создания таблиц:", "error", err)
-		os.Exit(1)
-	}
 	notifier := services.NewNotifier()
 	cryptoSvc := services.NewCryptoService(false, "storage/crypto_cache.json")
 
@@ -101,7 +96,7 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("Server starting on %s", srv.Addr)
+		slog.Info("Server starting", "port", srv.Addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			slog.Error("Server failed", "error", err)
 			os.Exit(1)

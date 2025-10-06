@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 	"webdev-90-days/internal/models"
@@ -18,7 +18,6 @@ type APIResponse struct {
 }
 
 func (h *Handler) AuthUserFormHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Обработка POST запроса на /register")
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -26,7 +25,7 @@ func (h *Handler) AuthUserFormHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseForm(); err != nil {
-		log.Printf("Ошибка парсинга формы: %v", err)
+		slog.Warn("Ошибка парсинга формы:", "error", err)
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return
 	}
@@ -40,7 +39,7 @@ func (h *Handler) AuthUserFormHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(contact)
 
 	if contact.Username == "" || contact.Email == "" || contact.Password == "" {
-		log.Printf("Невалидные данные: %+v", contact)
+		slog.Warn("Невалидные данные:", "contact", contact)
 		http.Error(w, "All fields are required", http.StatusBadRequest)
 		return
 	}
@@ -57,7 +56,7 @@ func (h *Handler) AuthUserFormHandler(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/static/FormNewUser.html?err=alreadyExistsAcc", http.StatusSeeOther)
 			return
 		default:
-			log.Printf("Ошибка сохранения: %v", err)
+			slog.Warn("Ошибка сохранения", "error", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
@@ -100,7 +99,6 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
-	// Ваша проверка логина/пароля (оставьте как есть)
 	err := h.userService.LoginUser(username, password)
 	if err != nil {
 		http.Redirect(w, r, "/static/FormRegUser.html?err=password", http.StatusSeeOther)
@@ -149,7 +147,7 @@ func (h *Handler) ChangeFavorite(w http.ResponseWriter, r *http.Request) {
 	if req.Action == "add" {
 		err := h.userService.AddFavorite(username, req.CoinID)
 		if err != nil {
-			log.Println(err)
+			slog.Warn("Ошибка", "error", err)
 			http.Error(w, "Cant create", http.StatusBadRequest)
 			return
 		}
@@ -157,7 +155,7 @@ func (h *Handler) ChangeFavorite(w http.ResponseWriter, r *http.Request) {
 		err := h.userService.RemoveFavorite(username, req.CoinID)
 		fmt.Println("flag")
 		if err != nil {
-			log.Println(err)
+			slog.Warn("Ошибка", "error", err)
 			http.Error(w, "Cant create", http.StatusBadRequest)
 			return
 		}
@@ -187,7 +185,7 @@ func (h *Handler) GetFavorites(w http.ResponseWriter, r *http.Request) {
 
 	favorites, err := h.userService.GetFavorites(username)
 	if err != nil {
-		log.Println(err)
+		slog.Warn("Ошибка", "error", err)
 		http.Error(w, "Cant create", http.StatusBadRequest)
 	}
 
