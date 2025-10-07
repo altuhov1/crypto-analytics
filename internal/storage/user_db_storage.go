@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
@@ -264,7 +265,8 @@ func (s *UserPostgresStorage) ExportUsersToJSON(filename string) error {
 	if err := encoder.Encode(users); err != nil {
 		return fmt.Errorf("failed to encode JSON: %w", err)
 	}
-
-	fmt.Printf("Successfully exported %d users to %s\n", len(users), filename)
+	slog.Info("Successfully exported users to",
+		"amount", len(users),
+		"filename", filename)
 	return nil
 }

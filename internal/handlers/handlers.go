@@ -85,7 +85,6 @@ func (h *Handler) ContactFormHandler(w http.ResponseWriter, r *http.Request) {
 		Email:   r.FormValue("email"),
 		Message: r.FormValue("message"),
 	}
-	fmt.Println(contact)
 
 	if contact.Name == "" || contact.Email == "" || contact.Message == "" {
 		http.Error(w, "All fields are required", http.StatusBadRequest)

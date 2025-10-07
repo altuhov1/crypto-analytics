@@ -36,7 +36,6 @@ func (h *Handler) AuthUserFormHandler(w http.ResponseWriter, r *http.Request) {
 		Password:      r.FormValue("password"),
 		FavoriteCoins: make([]string, 0),
 	}
-	fmt.Println(contact)
 
 	if contact.Username == "" || contact.Email == "" || contact.Password == "" {
 		slog.Warn("Невалидные данные:", "contact", contact)
@@ -153,7 +152,6 @@ func (h *Handler) ChangeFavorite(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		err := h.userService.RemoveFavorite(username, req.CoinID)
-		fmt.Println("flag")
 		if err != nil {
 			slog.Warn("Ошибка", "error", err)
 			http.Error(w, "Cant create", http.StatusBadRequest)

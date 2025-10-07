@@ -22,3 +22,5 @@ go.work.sum
 .vscode/
 user.json
 crypto_cache.json
+.DS_Store
+info_contacts.json
