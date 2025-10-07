@@ -10,7 +10,6 @@ services:
       - ./docker/postgres/init-scripts:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      # ← ДОБАВЬ ЭТОТ БЛОК
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
       timeout: 5s

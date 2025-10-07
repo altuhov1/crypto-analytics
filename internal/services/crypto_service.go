@@ -56,7 +56,7 @@ func (s *CryptoService) loadFromFile() error {
 	}
 
 	s.cacheTime = time.Now()
-	slog.Info("Загружены моенты из файла",
+	slog.Info("Загружены монеты из файла",
 		"кол", len(s.cache),
 		"из файла", s.cacheFile)
 	return nil
