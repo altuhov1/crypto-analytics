@@ -1,0 +1,115 @@
+package config
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+)
+
+type telegramHandler struct {
+	botToken string
+	chatIDs  []string
+	level    slog.Level
+	client   *http.Client
+}
+
+func (h *telegramHandler) Enabled(ctx context.Context, level slog.Level) bool {
+	return level >= h.level
+}
+
+func (h *telegramHandler) Handle(_ context.Context, r slog.Record) error {
+	if len(h.chatIDs) == 0 {
+		return nil
+	}
+	msg := fmt.Sprintf("[%s] %s\n%s", r.Level, r.Time.Format("15:04:05"), r.Message)
+
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
+		for _, chatID := range h.chatIDs {
+			if err := h.sendToTelegram(ctx, chatID, msg); err != nil {
+				fmt.Fprintf(os.Stderr, "[TelegramLogger] Failed to send to %s: %v\n", chatID, err)
+			}
+		}
+	}()
+
+	return nil
+}
+func (h *telegramHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return h
+}
+
+func (h *telegramHandler) WithGroup(name string) slog.Handler {
+	return h
+}
+
+func parseChatIDs(chatIDsStr string) []string {
+	if chatIDsStr == "" {
+		return nil
+	}
+	var ids []string
+	for _, id := range strings.Split(chatIDsStr, ",") {
+		id = strings.TrimSpace(id)
+		if id != "" {
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
+func newTelegramLogger(cfg *Config) *slog.Logger {
+	level := getLogLevelFromString(cfg.LogLevel)
+	handler := &telegramHandler{
+		botToken: cfg.TgBotToken,
+		chatIDs:  parseChatIDs(cfg.TgChatIDs),
+		level:    level,
+		client:   &http.Client{Timeout: 10 * time.Second},
+	}
+	return slog.New(handler)
+}
+
+func newTelegramLoggerFromEnv(token, chatIDsStr, logLevelStr string) *slog.Logger {
+	level := getLogLevelFromString(logLevelStr)
+	handler := &telegramHandler{
+		botToken: token,
+		chatIDs:  parseChatIDs(chatIDsStr),
+		level:    level,
+		client:   &http.Client{Timeout: 10 * time.Second},
+	}
+	return slog.New(handler)
+}
+
+// sendToTelegram — отправка одного сообщения
+func (h *telegramHandler) sendToTelegram(ctx context.Context, chatID, text string) error {
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", h.botToken)
+	payload := map[string]string{
+		"chat_id": chatID,
+		"text":    text,
+	}
+
+	jsonData, _ := json.Marshal(payload)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonData))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := h.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("HTTP %d", resp.StatusCode)
+	}
+	return nil
+}

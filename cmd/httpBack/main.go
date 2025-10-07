@@ -16,15 +16,12 @@ import (
 )
 
 func main() {
-	// log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	textLogger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	slog.SetDefault(textLogger)
-
-	// Загружаем конфигурацию
 	cfg := config.MustLoad()
 
-	// Инициализация хранилища
+	logger := config.NewLogger(cfg)
+	slog.SetDefault(logger)
+
 	configDB := storage.PGXConfig{
 		Host:     cfg.DBHost,
 		Port:     cfg.DBPort,
