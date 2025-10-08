@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -86,7 +87,6 @@ func newTelegramLoggerFromEnv(token, chatIDsStr, logLevelStr string) *slog.Logge
 	return slog.New(handler)
 }
 
-// sendToTelegram — отправка одного сообщения
 func (h *telegramHandler) sendToTelegram(ctx context.Context, chatID, text string) error {
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", h.botToken)
 	payload := map[string]string{
@@ -94,22 +94,39 @@ func (h *telegramHandler) sendToTelegram(ctx context.Context, chatID, text strin
 		"text":    text,
 	}
 
-	jsonData, _ := json.Marshal(payload)
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("marshal payload: %w", err)
+	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonData))
 	if err != nil {
-		return err
+		return fmt.Errorf("create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := h.client.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("send request: %w", err)
 	}
 	defer resp.Body.Close()
 
+	// Читаем тело ответа для диагностики
+	body, _ := io.ReadAll(resp.Body)
+
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("HTTP %d", resp.StatusCode)
+		return fmt.Errorf("telegram API error: status %d, body: %s", resp.StatusCode, string(body))
 	}
+
+	// Проверяем JSON ответ
+	var result map[string]interface{}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return fmt.Errorf("parse response: %w", err)
+	}
+
+	if !result["ok"].(bool) {
+		return fmt.Errorf("telegram API error: %v", result)
+	}
+
 	return nil
 }
