@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -115,4 +116,6 @@ func main() {
 		os.Exit(1)
 	}
 	slog.Info("Server stopped")
+
+	fmt.Println("ahjkjfa;ljfalalfjalkfjalfjal;")
 }
