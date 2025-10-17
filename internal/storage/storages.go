@@ -24,3 +24,8 @@ type NewsStorage interface {
 	GetAllNews() ([]models.NewsItem, error)
 	UpdateNews([]models.NewsItem) error
 }
+
+type CacheStorage interface {
+	Save(pairs []string) error
+	Load() ([]string, error)
+}
