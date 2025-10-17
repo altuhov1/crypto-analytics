@@ -144,6 +144,8 @@ func (a *App) setupRoutes(handler *handlers.Handler) http.Handler {
 		"/api/printUserstInfo":    handler.InfoOfUsers,
 		"/api/printContactInfo":   handler.InfoOfContacts,
 		"/api/cache-info":         handler.CacheInfoHandler,
+		"/api/all-pairs":          handler.GetAllPairsHandler,
+		"/api/select-pair":        handler.SelectPairHandler,
 	}
 
 	for path, handlerFunc := range apiRoutes {
@@ -153,6 +155,7 @@ func (a *App) setupRoutes(handler *handlers.Handler) http.Handler {
 	// Web routes
 	webRoutes := map[string]http.HandlerFunc{
 		"/news":          handler.NewsPage,
+		"/pairs":         handler.CryptoPairsPageHandler,
 		"/logout":        handler.LogoutHandler,
 		"/login":         handler.LoginHandler,
 		"/check-Sess-Id": handler.CheckAuthHandler,
@@ -212,6 +215,8 @@ func (a *App) shutdown() {
 
 	a.storages.contacts.Close()
 	a.storages.users.Close()
-
 	a.logger.Info("Server stopped")
+	if a.cfg.LaunchLoc == "prod" {
+		time.Sleep(1 * time.Second)
+	}
 }
