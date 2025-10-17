@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -16,110 +15,202 @@ import (
 	"webdev-90-days/internal/storage"
 )
 
+type App struct {
+	cfg      *config.Config
+	logger   *slog.Logger
+	server   *http.Server
+	services *Services
+	storages *Storages
+}
+
+type Services struct {
+	notifier services.Notifier
+	crypto   *services.CryptoService
+	news     *services.NewsService
+	users    *services.UserService
+	pairs    *services.CryptoPairsService
+}
+
+type Storages struct {
+	contacts storage.FormStorage
+	users    storage.UserStorage
+	news     storage.NewsStorage
+	pairs    storage.CacheStorage
+}
+
 func main() {
+	app := NewApp()
+	app.Run()
+}
 
+func NewApp() *App {
 	cfg := config.MustLoad()
-
 	logger := config.NewLogger(cfg)
 	slog.SetDefault(logger)
 
-	configDB := storage.PGXConfig{
-		Host:     cfg.DBHost,
-		Port:     cfg.DBPort,
-		User:     cfg.DBUser,
-		Password: cfg.DBPassword,
-		DBName:   cfg.DBName,
-		SSLMode:  cfg.DBSSLMode,
+	app := &App{
+		cfg:    cfg,
+		logger: logger,
 	}
 
-	pgStorageContacts, err := storage.NewPGXStorage(configDB)
+	app.initStorages()
+	app.initServices()
+	app.initHTTP()
+
+	return app
+}
+
+func (a *App) initStorages() {
+	dbConfig := storage.PGXConfig{
+		Host:     a.cfg.DBHost,
+		Port:     a.cfg.DBPort,
+		User:     a.cfg.DBUser,
+		Password: a.cfg.DBPassword,
+		DBName:   a.cfg.DBName,
+		SSLMode:  a.cfg.DBSSLMode,
+	}
+
+	contactsStorage, err := storage.NewPGXStorage(dbConfig)
 	if err != nil {
-		slog.Error("Ошибка подключения", "error", err)
+		a.logger.Error("Failed to initialize contacts storage", "error", err)
 		os.Exit(1)
 	}
-	defer pgStorageContacts.Close()
 
-	pgSorageUser, err := storage.NewUserPostgresStorage(configDB)
+	usersStorage, err := storage.NewUserPostgresStorage(dbConfig)
 	if err != nil {
-		panic("can not connect to db's table of users")
-	} else {
-		defer pgSorageUser.Close()
+		a.logger.Error("Failed to initialize users storage", "error", err)
+		os.Exit(1)
 	}
-
-	notifier := services.NewNotifier()
-	cryptoSvc := services.NewCryptoService(false, "storage/crypto_cache.json")
 
 	newsStorage := storage.NewNewsFileStorage("storage/news_cache.json")
 
-	newsService := services.NewNewsService(newsStorage, false)
+	pairsStorage := storage.NewPairsFileStorage("storage/pairs_cache.json")
 
-	userSvc := services.NewUserService(pgSorageUser)
-	handler, err := handlers.NewHandler(pgStorageContacts, notifier, cryptoSvc, userSvc, cfg.KeyUsersGorilla, newsService)
+	a.storages = &Storages{
+		contacts: contactsStorage,
+		users:    usersStorage,
+		news:     newsStorage,
+		pairs:    pairsStorage,
+	}
+}
+
+func (a *App) initServices() {
+	a.services = &Services{
+		notifier: services.NewNotifier(),
+		crypto:   services.NewCryptoService(false, "storage/crypto_cache.json"),
+		news:     services.NewNewsService(a.storages.news, false),
+		users:    services.NewUserService(a.storages.users),
+		pairs:    services.NewCryptoPairsService(a.storages.pairs, false),
+	}
+}
+
+func (a *App) initHTTP() {
+	handler, err := handlers.NewHandler(
+		a.storages.contacts,
+		a.services.notifier,
+		a.services.crypto,
+		a.services.users,
+		a.cfg.KeyUsersGorilla,
+		a.services.news,
+	)
 	if err != nil {
-		slog.Error("Failed to create handler:", "error", err)
+		a.logger.Error("Failed to create handler", "error", err)
 		os.Exit(1)
 	}
 
-	fs := http.FileServer(http.Dir("static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	router := a.setupRoutes(handler)
 
-	http.HandleFunc("/news", handler.NewsPage)
-	http.HandleFunc("/logout", handler.LogoutHandler)
-	http.HandleFunc("/login", handler.LoginHandler)
-	http.HandleFunc("/check-Sess-Id", handler.CheckAuthHandler)
-	http.HandleFunc("/register", handler.AuthUserFormHandler)
-	http.HandleFunc("/contact", handler.ContactFormHandler)
-	http.HandleFunc("/crypto-top", handler.CryptoTopHandler)
-
-	http.HandleFunc("/api/allFavoriteCoin", handler.GetFavorites)
-	http.HandleFunc("/api/changeFavoriteCoin", handler.ChangeFavorite)
-	http.HandleFunc("/api/printUserstInfo", handler.InfoOfUsers)
-	http.HandleFunc("/api/printContactInfo", handler.InfoOfContacts)
-	http.HandleFunc("/api/cache-info", handler.CacheInfoHandler)
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
-			http.NotFound(w, r) //404
-			return
-		}
-		http.ServeFile(w, r, "static/index.html")
-	})
-
-	// Создаем HTTP сервер с таймаутами
-	srv := &http.Server{
-		Addr:         ":" + cfg.ServerPort,
+	a.server = &http.Server{
+		Addr:         ":" + a.cfg.ServerPort,
+		Handler:      router,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  30 * time.Second,
 	}
+}
 
-	go func() {
-		slog.Info("Server starting", "port", srv.Addr)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			slog.Error("Server failed", "error", err)
-			os.Exit(1)
-		}
-	}()
+func (a *App) setupRoutes(handler *handlers.Handler) http.Handler {
+	mux := http.NewServeMux()
 
+	// Static files
+	fs := http.FileServer(http.Dir("static"))
+	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	// API routes
+	apiRoutes := map[string]http.HandlerFunc{
+		"/api/allFavoriteCoin":    handler.GetFavorites,
+		"/api/changeFavoriteCoin": handler.ChangeFavorite,
+		"/api/printUserstInfo":    handler.InfoOfUsers,
+		"/api/printContactInfo":   handler.InfoOfContacts,
+		"/api/cache-info":         handler.CacheInfoHandler,
+	}
+
+	for path, handlerFunc := range apiRoutes {
+		mux.HandleFunc(path, handlerFunc)
+	}
+
+	// Web routes
+	webRoutes := map[string]http.HandlerFunc{
+		"/news":          handler.NewsPage,
+		"/logout":        handler.LogoutHandler,
+		"/login":         handler.LoginHandler,
+		"/check-Sess-Id": handler.CheckAuthHandler,
+		"/register":      handler.AuthUserFormHandler,
+		"/contact":       handler.ContactFormHandler,
+		"/crypto-top":    handler.CryptoTopHandler,
+	}
+
+	for path, handlerFunc := range webRoutes {
+		mux.HandleFunc(path, handlerFunc)
+	}
+
+	// Root route
+	mux.HandleFunc("/", a.rootHandler)
+
+	return mux
+}
+
+func (a *App) rootHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+	http.ServeFile(w, r, "static/index.html")
+}
+
+func (a *App) Run() {
+	go a.startServer()
+	a.waitForShutdown()
+}
+
+func (a *App) startServer() {
+	a.logger.Info("Server starting", "port", a.server.Addr)
+	if err := a.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		a.logger.Error("Server failed", "error", err)
+		os.Exit(1)
+	}
+}
+
+func (a *App) waitForShutdown() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-
 	<-stop
-	slog.Info("Shutting down server gracefully...")
 
+	a.logger.Info("Shutting down server gracefully...")
+	a.shutdown()
+}
+
+func (a *App) shutdown() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Останавливаем tcp подключения
-	if err := srv.Shutdown(ctx); err != nil {
-		slog.Error("Server forced to shutdown:", "error", err)
+	if err := a.server.Shutdown(ctx); err != nil {
+		a.logger.Error("Server forced to shutdown", "error", err)
 		os.Exit(1)
 	}
-	slog.Info("Server stopped")
 
-	fmt.Println("nonon, this one")
-	fmt.Println("nonon, this one")
-	fmt.Println("nonon, this one")
-	fmt.Println("nonon, this one")
-	fmt.Println("nonon, this one")
+	a.storages.contacts.Close()
+	a.storages.users.Close()
+
+	a.logger.Info("Server stopped")
 }

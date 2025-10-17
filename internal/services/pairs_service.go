@@ -6,14 +6,13 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
+	"webdev-90-days/internal/storage"
 )
 
 type CryptoPairsService struct {
-	cacheFile     string
+	store         storage.CacheStorage
 	pairs         []string
 	isInitialized bool
 }
@@ -26,23 +25,26 @@ type PairsResponse struct {
 
 const BinanceAPIURL = "https://api.binance.com/api/v3/exchangeInfo"
 
-func NewCryptoPairsService(cacheFile string, downloadOnStart bool) (*CryptoPairsService, error) {
+func NewCryptoPairsService(storePairs storage.CacheStorage,
+	downloadOnStart bool) *CryptoPairsService {
 	service := &CryptoPairsService{
-		cacheFile: cacheFile,
-		pairs:     []string{},
+		store: storePairs,
+		pairs: []string{},
 	}
 
 	if downloadOnStart {
 		slog.Info("Downloading crypto pairs from API")
 		if err := service.downloadAndCachePairs(); err != nil {
-			return nil, fmt.Errorf("failed to download pairs: %v", err)
+			slog.Error("Failed to download pairs on startup", "error", err)
 		}
 	} else {
 		slog.Info("Loading crypto pairs from cache")
-		if err := service.loadPairsFromCache(); err != nil {
-			slog.Warn("Cache load failed, downloading from API")
+		if strings, err := service.store.Load(); err == nil {
+			service.pairs = strings
+		} else {
+			slog.Error("Cache load failed, downloading from API", "error", err)
 			if err := service.downloadAndCachePairs(); err != nil {
-				return nil, fmt.Errorf("failed to download pairs: %v", err)
+				slog.Error("Failed to download pairs after cache failure", "error", err)
 			}
 		}
 	}
@@ -50,7 +52,7 @@ func NewCryptoPairsService(cacheFile string, downloadOnStart bool) (*CryptoPairs
 	service.isInitialized = true
 	slog.Info("Crypto pairs service initialized", "pairs_count", len(service.pairs))
 
-	return service, nil
+	return service
 }
 
 func (s *CryptoPairsService) downloadAndCachePairs() error {
@@ -80,28 +82,8 @@ func (s *CryptoPairsService) downloadAndCachePairs() error {
 	if err != nil {
 		return err
 	}
+	return s.store.Save(data, len(s.pairs))
 
-	// Создаем директории рекурсивно
-	if err := s.ensureCacheDir(); err != nil {
-		return fmt.Errorf("failed to create cache directory: %v", err)
-	}
-
-	if err := os.WriteFile(s.cacheFile, data, 0644); err != nil {
-		return err
-	}
-
-	slog.Info("USDT pairs downloaded and cached", "count", len(s.pairs))
-	return nil
-}
-
-// ensureCacheDir создает директорию для кэш файла если её нет
-func (s *CryptoPairsService) ensureCacheDir() error {
-	dir := filepath.Dir(s.cacheFile)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return err
-	}
-	slog.Debug("Cache directory ensured", "path", dir)
-	return nil
 }
 
 // filterUSDTOairs оставляет только пары, заканчивающиеся на USDT
@@ -113,18 +95,7 @@ func (s *CryptoPairsService) filterUSDTOairs(response PairsResponse) []string {
 			usdtPairs = append(usdtPairs, symbol.Symbol)
 		}
 	}
-
-	slog.Info("Filtered USDT pairs", "total", len(response.Symbols), "usdt_pairs", len(usdtPairs))
 	return usdtPairs
-}
-
-func (s *CryptoPairsService) loadPairsFromCache() error {
-	data, err := os.ReadFile(s.cacheFile)
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(data, &s.pairs)
 }
 
 func (s *CryptoPairsService) GetAllPairs() ([]string, error) {

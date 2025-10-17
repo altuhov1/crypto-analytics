@@ -96,9 +96,8 @@ func (s *PGXStorage) SaveContactFrom(contact *models.ContactForm) error {
 	return nil
 }
 
-func (s *PGXStorage) Close() error {
+func (s *PGXStorage) Close(){
 	s.pool.Close()
-	return nil
 }
 
 // ExportContactsToJSON экспортирует контакты в JSON файл (альтернативный вариант)

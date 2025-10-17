@@ -7,7 +7,7 @@ import "webdev-90-days/internal/models"
 type FormStorage interface {
 	SaveContactFrom(contact *models.ContactForm) error
 	ExportContactsToJSON(filename string) error
-	Close() error // Для закрытия соединений
+	Close()
 }
 
 type UserStorage interface {
@@ -17,6 +17,7 @@ type UserStorage interface {
 	NewFavoriteCoin(nameU string, nameCoin string) error
 	RemoveFavoriteCoin(nameU string, nameCoin string) error
 	ExportUsersToJSON(filename string) error
+	Close()
 }
 
 type NewsStorage interface {
@@ -26,6 +27,6 @@ type NewsStorage interface {
 }
 
 type CacheStorage interface {
-	Save(pairs []string) error
+	Save(data []byte, amountPairs int) error
 	Load() ([]string, error)
 }
