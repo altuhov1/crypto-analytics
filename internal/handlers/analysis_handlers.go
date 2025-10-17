@@ -143,3 +143,77 @@ func (h *Handler) sendToExternalBackend(pair string) error {
 	slog.Info("Sending to external backend (stub)", "pair", pair)
 	return nil
 }
+
+// //sdfasfasfkasl;fkjadfkasd;dfka;ldfka;'
+type AnalysisRequest struct {
+	Pair      string `json:"pair"`
+	Timeframe string `json:"timeframe"`
+	UseCache  bool   `json:"useCache"`
+}
+
+type AnalysisResponse struct {
+	Success bool                   `json:"success"`
+	Data    *services.AnalysisData `json:"data,omitempty"`
+	Error   string                 `json:"error,omitempty"`
+}
+
+func NewAnalysisHandler(analysisService *services.AnalysisService) *AnalysisHandler {
+	return &AnalysisHandler{
+		analysisService: analysisService,
+	}
+}
+
+// AnalysisPageHandler отображает страницу анализа
+func (h *AnalysisHandler) AnalysisPageHandler(w http.ResponseWriter, r *http.Request) {
+	pair := r.URL.Query().Get("pair")
+	if pair == "" {
+		pair = "BTCUSDT" // значение по умолчанию
+	}
+
+	// Можно передать пару в шаблон или использовать JavaScript
+	http.ServeFile(w, r, "templates/analysis.html")
+}
+
+// GetAnalysisDataHandler API для получения данных анализа
+func (h *Handler) GetAnalysisDataHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req AnalysisRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		slog.Error("Failed to decode analysis request", "error", err)
+		json.NewEncoder(w).Encode(AnalysisResponse{
+			Success: false,
+			Error:   "Invalid request format",
+		})
+		return
+	}
+
+	if req.Pair == "" {
+		req.Pair = "BTCUSDT"
+	}
+	if req.Timeframe == "" {
+		req.Timeframe = "1h"
+	}
+
+	slog.Info("Analysis request", "pair", req.Pair, "timeframe", req.Timeframe, "useCache", req.UseCache)
+
+	analysisData, err := h.analysisService.GetAnalysisData(req.Pair, req.Timeframe, req.UseCache)
+	if err != nil {
+		slog.Error("Failed to get analysis data", "error", err, "pair", req.Pair)
+		json.NewEncoder(w).Encode(AnalysisResponse{
+			Success: false,
+			Error:   fmt.Sprintf("Failed to load analysis data: %v", err),
+		})
+		return
+	}
+
+	json.NewEncoder(w).Encode(AnalysisResponse{
+		Success: true,
+		Data:    analysisData,
+	})
+}

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Технический анализ - CoinSight</title>
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+    <link rel="icon" type="image/png" href="/static/images/favicon.png">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/analysis.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+    <!-- Библиотека для графиков -->
+    <script
+        src="https://cdn.jsdelivr.net/npm/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <a href="/"
+                    style="font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: -0.5px; font-size: 1.8rem; text-decoration: none; color: var(--accent-color);">CoinSight</a>
+            </h1>
+            <nav class="nav">
+                <a href="/">Главная</a>
+                <a href="/crypto-top">Топ криптовалют</a>
+                <a href="/crypto-pairs">Выбор пар</a>
+                <a href="/analysis">Технический анализ</a>
+                <a href="/contact">Контакты</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="analysis-container">
+        <div class="analysis-header">
+            <h1>Технический анализ</h1>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="pairSelect">Торговая пара:</label>
+                    <select id="pairSelect" class="control-select">
+                        <option value="BTCUSDT">BTC/USDT</option>
+                        <option value="ETHUSDT">ETH/USDT</option>
+                        <option value="ADAUSDT">ADA/USDT</option>
+                        <option value="DOTUSDT">DOT/USDT</option>
+                        <option value="LINKUSDT">LINK/USDT</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="timeframeSelect">Таймфрейм:</label>
+                    <select id="timeframeSelect" class="control-select">
+                        <option value="5m">5 минут</option>
+                        <option value="1h" selected>1 час</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="useCache" checked>
+                        Использовать кэш
+                    </label>
+                </div>
+
+                <button id="loadDataBtn" class="load-btn">Загрузить данные</button>
+            </div>
+        </div>
+
+        <div class="indicators-panel">
+            <div class="indicator-card">
+                <div class="indicator-label">RSI (14)</div>
+                <div class="indicator-value" id="rsiValue">-</div>
+                <div class="indicator-status" id="rsiStatus"></div>
+            </div>
+
+            <div class="indicator-card">
+                <div class="indicator-label">SMA (20)</div>
+                <div class="indicator-value" id="sma20Value">-</div>
+                <div class="indicator-status" id="sma20Status"></div>
+            </div>
+
+            <div class="indicator-card">
+                <div class="indicator-label">SMA (50)</div>
+                <div class="indicator-value" id="sma50Value">-</div>
+                <div class="indicator-status" id="sma50Status"></div>
+            </div>
+
+            <div class="indicator-card">
+                <div class="indicator-label">MACD</div>
+                <div class="indicator-value" id="macdValue">-</div>
+                <div class="indicator-status" id="macdStatus"></div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div id="candleChart" class="chart"></div>
+        </div>
+
+        <div class="analysis-summary">
+            <h3>Анализ ситуации</h3>
+            <div id="analysisText" class="analysis-text">
+                Выберите пару и нажмите "Загрузить данные" для получения анализа
+            </div>
+        </div>
+
+        <a href="/crypto-pairs" class="back-link">← Вернуться к выбору пар</a>
+    </div>
+
+    <script src="/static/js/analysis.js"></script>
+</body>
+
+</html>
