@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор криптовалютных пар - CoinSight</title>
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+    <link rel="icon" type="image/png" href="/static/images/favicon.png">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .pairs-container {
+            max-width: 1000px;
+            margin: 100px auto 50px;
+            padding: 20px;
+        }
+
+        .search-section {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1.1rem;
+            background: var(--bg-input);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(0, 192, 139, 0.2);
+        }
+
+        .search-results {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-input);
+        }
+
+        .pair-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pair-item:hover {
+            background: rgba(0, 192, 139, 0.1);
+        }
+
+        .pair-item:last-child {
+            border-bottom: none;
+        }
+
+        .pair-item.selected {
+            background: rgba(0, 192, 139, 0.15);
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .pair-symbol {
+            font-weight: 600;
+            color: var(--accent-primary);
+        }
+
+        .select-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .select-btn:hover:not(:disabled) {
+            background: var(--accent-secondary);
+            transform: translateY(-2px);
+        }
+
+        .select-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .selected-pair-section {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .selected-pair {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 15px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .send-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            background: var(--accent-secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 192, 139, 0.3);
+        }
+
+        .send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .clear-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--text-color);
+        }
+
+        .status-message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+
+        .status-error {
+            background: rgba(231, 76, 60, 0.1);
+            color: #c0392b;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .no-results {
+            padding: 30px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .results-count {
+            margin: 10px 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <a href="/"
+                    style="font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: -0.5px; font-size: 1.8rem; text-decoration: none; color: var(--accent-color);">CoinSight</a>
+            </h1>
+            <nav class="nav">
+                <a href="/">Главная</a>
+                <a href="/crypto-top">Топ криптовалют</a>
+                <a href="/crypto-pairs">Выбор пар</a>
+                <a href="/contact">Контакты</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="pairs-container">
+        <h1>Выбор криптовалютных пар</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 30px;">
+            Найдите и выберите торговую пару для отправки на анализ
+        </p>
+
+        <div class="search-section">
+            <input type="text" id="searchBox" class="search-box"
+                placeholder="Введите название пары (например: BTCUSDT, ETHUSDT)...">
+
+            <div class="results-count" id="resultsCount">
+                Введите текст для поиска пар
+            </div>
+
+            <div class="search-results" id="searchResults">
+                <div class="no-results">
+                    <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+                    <p>Начните вводить название пары для поиска</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="selected-pair-section" id="selectedPairSection" style="display: none;">
+            <div class="selected-pair" id="selectedPairDisplay"></div>
+            <p>Выбранная пара будет отправлена на внешний сервис для анализа</p>
+
+            <div class="action-buttons">
+                <button id="sendBtn" class="send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                    Отправить на анализ
+                </button>
+                <button id="clearBtn" class="clear-btn">
+                    <i class="fas fa-times"></i>
+                    Очистить выбор
+                </button>
+            </div>
+
+            <div id="statusMessage" class="status-message" style="display: none;"></div>
+        </div>
+
+        <a href="/" class="back-link">← Вернуться на главную</a>
+    </div>
+
+    <script>
+        let selectedPair = null;
+        let searchTimeout = null;
+
+        // Элементы DOM
+        const searchBox = document.getElementById('searchBox');
+        const searchResults = document.getElementById('searchResults');
+        const resultsCount = document.getElementById('resultsCount');
+        const selectedPairSection = document.getElementById('selectedPairSection');
+        const selectedPairDisplay = document.getElementById('selectedPairDisplay');
+        const sendBtn = document.getElementById('sendBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // Поиск пар
+        searchBox.addEventListener('input', function () {
+            const query = this.value.trim();
+
+            // Очищаем предыдущий таймаут
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+
+            // Устанавливаем новый таймаут для поиска (задержка 300ms)
+            searchTimeout = setTimeout(() => {
+                searchPairs(query);
+            }, 300);
+        });
+
+        // Функция поиска пар
+        async function searchPairs(query) {
+            if (!query) {
+                showInitialState();
+                return;
+            }
+
+            try {
+                showLoading();
+                const response = await fetch(`/api/search-pairs?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayPairs(data.pairs);
+                } else {
+                    showError('Ошибка при загрузке пар: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                showError('Ошибка при поиске пар');
+            }
+        }
+
+        // Отображение состояния загрузки
+        function showLoading() {
+            searchResults.innerHTML = `
+                <div class="no-results">
+                    <div class="loading" style="margin: 0 auto 15px;"></div>
+                    <p>Поиск пар...</p>
+                </div>
+            `;
+            resultsCount.textContent = 'Поиск...';
+        }
+
+        // Отображение начального состояния
+        function showInitialState() {
+            searchResults.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+                    <p>Начните вводить название пары для поиска</p>
+                </div>
+            `;
+            resultsCount.textContent = 'Введите текст для поиска пар';
+        }
+
+        // Отображение ошибки
+        function showError(message) {
+            searchResults.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px; color: var(--error-color);"></i>
+                    <p>${message}</p>
+                </div>
+            `;
+            resultsCount.textContent = 'Ошибка поиска';
+        }
+
+        // Отображение найденных пар
+        function displayPairs(pairs) {
+            if (pairs.length === 0) {
+                searchResults.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+                        <p>Пар не найдено. Попробуйте другой запрос.</p>
+                    </div>
+                `;
+                resultsCount.textContent = `Найдено пар: 0`;
+                return;
+            }
+
+            const pairsHtml = pairs.map(pair => {
+                const isSelected = selectedPair === pair;
+                return `
+                    <div class="pair-item ${isSelected ? 'selected' : ''}" data-pair="${pair}">
+                        <span class="pair-symbol">${pair}</span>
+                        <button class="select-btn" ${isSelected ? 'disabled' : ''}>
+                            ${isSelected ? '✓ Выбрано' : 'Выбрать'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            searchResults.innerHTML = pairsHtml;
+            resultsCount.textContent = `Найдено пар: ${pairs.length}`;
+
+            // Добавляем обработчики клика на элементы
+            document.querySelectorAll('.pair-item').forEach(item => {
+                item.addEventListener('click', function () {
+                    selectPair(this.dataset.pair);
+                });
+            });
+        }
+
+        // Выбор пары
+        function selectPair(pair) {
+            selectedPair = pair;
+            selectedPairDisplay.textContent = pair;
+            selectedPairSection.style.display = 'block';
+
+            // Обновляем отображение в результатах поиска
+            document.querySelectorAll('.pair-item').forEach(item => {
+                if (item.dataset.pair === pair) {
+                    item.classList.add('selected');
+                    item.querySelector('.select-btn').textContent = '✓ Выбрано';
+                    item.querySelector('.select-btn').disabled = true;
+                } else {
+                    item.classList.remove('selected');
+                    item.querySelector('.select-btn').textContent = 'Выбрать';
+                    item.querySelector('.select-btn').disabled = false;
+                }
+            });
+
+            // Прокручиваем к выбранной секции
+            selectedPairSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Очистка выбора
+        clearBtn.addEventListener('click', function () {
+            selectedPair = null;
+            selectedPairSection.style.display = 'none';
+            statusMessage.style.display = 'none';
+
+            // Обновляем отображение в результатах поиска
+            document.querySelectorAll('.pair-item').forEach(item => {
+                item.classList.remove('selected');
+                item.querySelector('.select-btn').textContent = 'Выбрать';
+                item.querySelector('.select-btn').disabled = false;
+            });
+        });
+
+        // Отправка пары на бэкенд
+        sendBtn.addEventListener('click', async function () {
+            if (!selectedPair) return;
+
+            try {
+                // Показываем состояние загрузки
+                sendBtn.innerHTML = '<div class="loading"></div> Отправка...';
+                sendBtn.disabled = true;
+                statusMessage.style.display = 'none';
+
+                const response = await fetch('/api/select-pair', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        pair: selectedPair
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus(data.message, 'success');
+                } else {
+                    showStatus('Ошибка: ' + (data.error || data.message), 'error');
+                }
+            } catch (error) {
+                console.error('Send error:', error);
+                showStatus('Ошибка при отправке: ' + error.message, 'error');
+            } finally {
+                // Восстанавливаем кнопку
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить на анализ';
+                sendBtn.disabled = false;
+            }
+        });
+
+        // Показать статус
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message status-${type}`;
+            statusMessage.style.display = 'block';
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function () {
+            showInitialState();
+        });
+    </script>
+</body>
+
+</html>

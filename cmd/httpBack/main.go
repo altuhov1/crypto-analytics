@@ -112,6 +112,7 @@ func (a *App) initHTTP() {
 		a.services.users,
 		a.cfg.KeyUsersGorilla,
 		a.services.news,
+		a.services.pairs,
 	)
 	if err != nil {
 		a.logger.Error("Failed to create handler", "error", err)
