@@ -30,3 +30,8 @@ type CacheStorage interface {
 	Save(data []byte, amountPairs int) error
 	Load() ([]string, error)
 }
+
+type AnalysisStorage interface {
+	SaveAnalysisData(data models.PairsCrypto) error
+	LoadAnalysisData() (models.PairsCrypto, error)
+}

@@ -72,13 +72,13 @@ func (a *App) initStorages() {
 
 	contactsStorage, err := storage.NewPGXStorage(dbConfig)
 	if err != nil {
-		a.logger.Error("Failed to initialize contacts storage", "error", err)
+		slog.Error("Failed to initialize contacts storage", "error", err)
 		os.Exit(1)
 	}
 
 	usersStorage, err := storage.NewUserPostgresStorage(dbConfig)
 	if err != nil {
-		a.logger.Error("Failed to initialize users storage", "error", err)
+		slog.Error("Failed to initialize users storage", "error", err)
 		os.Exit(1)
 	}
 
@@ -115,7 +115,7 @@ func (a *App) initHTTP() {
 		a.services.pairs,
 	)
 	if err != nil {
-		a.logger.Error("Failed to create handler", "error", err)
+		slog.Error("Failed to create handler", "error", err)
 		os.Exit(1)
 	}
 
@@ -188,9 +188,9 @@ func (a *App) Run() {
 }
 
 func (a *App) startServer() {
-	a.logger.Info("Server starting", "port", a.server.Addr)
+	slog.Info("Server starting", "port", a.server.Addr)
 	if err := a.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		a.logger.Error("Server failed", "error", err)
+		slog.Error("Server failed", "error", err)
 		os.Exit(1)
 	}
 }
@@ -200,7 +200,7 @@ func (a *App) waitForShutdown() {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
 
-	a.logger.Info("Shutting down server gracefully...")
+	slog.Info("Shutting down server gracefully...")
 	a.shutdown()
 }
 
@@ -209,13 +209,13 @@ func (a *App) shutdown() {
 	defer cancel()
 
 	if err := a.server.Shutdown(ctx); err != nil {
-		a.logger.Error("Server forced to shutdown", "error", err)
+		slog.Error("Server forced to shutdown", "error", err)
 		os.Exit(1)
 	}
 
 	a.storages.contacts.Close()
 	a.storages.users.Close()
-	a.logger.Info("Server stopped")
+	slog.Info("Server stopped")
 	if a.cfg.LaunchLoc == "prod" {
 		time.Sleep(1 * time.Second)
 	}

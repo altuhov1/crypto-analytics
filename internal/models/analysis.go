@@ -1,5 +1,15 @@
 package models
 
+type PairsCrypto []AnalysisData
+
+type AnalysisData struct {
+	Pair       string              `json:"pair"`
+	Timeframe  string              `json:"timeframe"`
+	Candles    []Candle            `json:"candles"`
+	Indicators TechnicalIndicators `json:"indicators"`
+	Timestamp  int64               `json:"timestamp"`
+}
+
 type Candle struct {
 	OpenTime  int64   `json:"openTime"`
 	CloseTime int64   `json:"closeTime"`
@@ -19,12 +29,4 @@ type TechnicalIndicators struct {
 	MACD      float64 `json:"macd"`
 	Signal    float64 `json:"signal"`
 	Histogram float64 `json:"histogram"`
-}
-
-type AnalysisData struct {
-	Pair       string              `json:"pair"`
-	Timeframe  string              `json:"timeframe"`
-	Candles    []Candle            `json:"candles"`
-	Indicators TechnicalIndicators `json:"indicators"`
-	Timestamp  int64               `json:"timestamp"`
 }
