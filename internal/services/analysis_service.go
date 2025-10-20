@@ -9,7 +9,7 @@ import (
 	"webdev-90-days/internal/storage"
 )
 
-type analysisService struct {
+type AnalysisService struct {
 	Pairs      models.PairsCrypto
 	store      storage.AnalysisStorage
 	binanceAPI *BinanceAPI
@@ -17,8 +17,8 @@ type analysisService struct {
 	mu         sync.RWMutex
 }
 
-func NewAnalysisService(goToApi bool, store storage.AnalysisStorage) *analysisService {
-	service := &analysisService{
+func NewAnalysisService(goToApi bool, store storage.AnalysisStorage) *AnalysisService {
+	service := &AnalysisService{
 		goToApi:    goToApi,
 		store:      store,
 		binanceAPI: NewBinanceAPI(),
@@ -45,7 +45,7 @@ func NewAnalysisService(goToApi bool, store storage.AnalysisStorage) *analysisSe
 }
 
 // uploadApi загружает данные из API Binance
-func (a *analysisService) uploadApi() models.PairsCrypto {
+func (a *AnalysisService) uploadApi() models.PairsCrypto {
 	pairs := []string{"BTCUSDT", "ETHUSDT", "BNBUSDT"}
 	timeframes := []string{"5m", "1h"}
 	base := make(models.PairsCrypto, 0)
@@ -60,14 +60,7 @@ func (a *analysisService) uploadApi() models.PairsCrypto {
 				"pair", p,
 				"timeframe", t)
 
-			candlesApi, err := a.binanceAPI.fetchCandlesFromBinance(p, t, 900)
-			if err != nil {
-				slog.Error("Ошибка при загрузке свечей с Binance",
-					"pair", p,
-					"timeframe", t,
-					"error", err)
-				continue
-			}
+			candlesApi := a.fetchFromApi(p, t)
 
 			if len(candlesApi) == 0 {
 				slog.Warn("Получено 0 свечей от Binance",
@@ -105,7 +98,7 @@ func (a *analysisService) uploadApi() models.PairsCrypto {
 }
 
 // uploadFromStorage загружает данные из хранилища
-func (a *analysisService) uploadFromStorage() models.PairsCrypto {
+func (a *AnalysisService) uploadFromStorage() models.PairsCrypto {
 	slog.Info("Загрузка данных из хранилища")
 
 	data, err := a.store.LoadAnalysisData()
@@ -122,7 +115,7 @@ func (a *analysisService) uploadFromStorage() models.PairsCrypto {
 }
 
 // fetchFromApi делает запрос к API Binance для получения свечей
-func (a *analysisService) fetchFromApi(pair, timeframe string) []models.Candle {
+func (a *AnalysisService) fetchFromApi(pair, timeframe string) []models.Candle {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
@@ -130,7 +123,7 @@ func (a *analysisService) fetchFromApi(pair, timeframe string) []models.Candle {
 		"pair", pair,
 		"timeframe", timeframe)
 
-	candles, err := a.binanceAPI.fetchCandlesFromBinance(pair, timeframe, 100)
+	candles, err := a.binanceAPI.fetchCandlesFromBinance(pair, timeframe, 900)
 	if err != nil {
 		slog.Error("Ошибка при запросе к Binance API",
 			"pair", pair,
@@ -148,7 +141,7 @@ func (a *analysisService) fetchFromApi(pair, timeframe string) []models.Candle {
 }
 
 // calcIndicator рассчитывает технические индикаторы на основе свечей
-func (a *analysisService) calcIndicator(candles []models.Candle) models.TechnicalIndicators {
+func (a *AnalysisService) calcIndicator(candles []models.Candle) models.TechnicalIndicators {
 	if len(candles) < 50 {
 		slog.Warn("Недостаточно свечей для расчета индикаторов",
 			"candlesCount", len(candles),
@@ -214,7 +207,7 @@ func (a *analysisService) calcIndicator(candles []models.Candle) models.Technica
 }
 
 // calculateEMA рассчитывает Exponential Moving Average
-func (a *analysisService) calculateEMA(candles []models.Candle, period int) float64 {
+func (a *AnalysisService) calculateEMA(candles []models.Candle, period int) float64 {
 	if len(candles) < period {
 		return 0
 	}
@@ -236,14 +229,14 @@ func (a *analysisService) calculateEMA(candles []models.Candle, period int) floa
 }
 
 // calculateMACDSignal рассчитывает сигнальную линию MACD
-func (a *analysisService) calculateMACDSignal(candles []models.Candle, ema12, ema26 float64) float64 {
+func (a *AnalysisService) calculateMACDSignal(_ []models.Candle, ema12, ema26 float64) float64 {
 	// Упрощенный расчет сигнальной линии
 	// В реальности нужно рассчитывать EMA9 от значений MACD
 	return (ema12 + ema26) / 2 * 0.9 // Упрощенная формула для примера
 }
 
 // calculateRSI рассчитывает Relative Strength Index
-func (a *analysisService) calculateRSI(candles []models.Candle, period int) float64 {
+func (a *AnalysisService) calculateRSI(candles []models.Candle, period int) float64 {
 	if len(candles) <= period {
 		return 50.0 // Нейтральное значение при недостатке данных
 	}
@@ -272,7 +265,7 @@ func (a *analysisService) calculateRSI(candles []models.Candle, period int) floa
 }
 
 // asyncUpdatePairs асинхронно обновляет данные каждые 2 часа
-func (a *analysisService) asyncUpdatePairs() {
+func (a *AnalysisService) asyncUpdatePairs() {
 	ticker := time.NewTicker(2 * time.Hour)
 	defer ticker.Stop()
 
@@ -298,7 +291,7 @@ func (a *analysisService) asyncUpdatePairs() {
 }
 
 // GetPairInfo возвращает информацию по паре и таймфрейму
-func (a *analysisService) GetPairInfo(pair, timeframe string) (*models.AnalysisData, error) {
+func (a *AnalysisService) GetPairInfo(pair, timeframe string) (*models.AnalysisData, error) {
 	slog.Debug("Поиск данных по паре",
 		"pair", pair,
 		"timeframe", timeframe)
@@ -323,7 +316,7 @@ func (a *analysisService) GetPairInfo(pair, timeframe string) (*models.AnalysisD
 }
 
 // GetAllPairs возвращает все доступные пары
-func (a *analysisService) GetAllPairs() models.PairsCrypto {
+func (a *AnalysisService) GetAllPairs() models.PairsCrypto {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
@@ -331,22 +324,4 @@ func (a *analysisService) GetAllPairs() models.PairsCrypto {
 		"availablePairs", len(a.Pairs))
 
 	return a.Pairs
-}
-
-// UpdateNow принудительно обновляет данные
-func (a *analysisService) UpdateNow() {
-	slog.Info("Принудительное обновление данных")
-
-	startTime := time.Now()
-	newPairs := a.uploadApi()
-
-	a.mu.Lock()
-	a.Pairs = newPairs
-	a.mu.Unlock()
-
-	duration := time.Since(startTime)
-
-	slog.Info("Данные успешно обновлены по требованию",
-		"duration", duration,
-		"records", len(newPairs))
 }

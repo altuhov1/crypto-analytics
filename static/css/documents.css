@@ -119,17 +119,145 @@ body {
     font-size: 0.9rem;
 }
 
+/* Адаптивность для мобильных устройств */
 @media (max-width: 768px) {
-    .content-container {
-        padding: 1.5rem;
-        margin: 1rem;
+    body {
+        padding: 15px;
     }
 
     .header {
-        padding: 1.5rem;
+        padding: 1.5rem 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 12px;
     }
 
     .header h1 {
-        font-size: 2rem;
+        font-size: 1.8rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .content-container {
+        padding: 1.5rem;
+        margin: 0;
+        border-radius: 12px;
+        max-width: 100%;
+    }
+
+    .content-section {
+        margin-bottom: 2rem;
+    }
+
+    .content-section h2 {
+        font-size: 1.3rem;
+        margin-bottom: 0.8rem;
+        padding-bottom: 0.4rem;
+    }
+
+    .content-section h3 {
+        font-size: 1.1rem;
+        margin: 1.2rem 0 0.4rem 0;
+    }
+
+    .content-section p {
+        font-size: 0.95rem;
+        text-align: left;
+        margin-bottom: 0.8rem;
+        line-height: 1.5;
+    }
+
+    .content-section ul {
+        margin-left: 1rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .content-section li {
+        font-size: 0.95rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .back-button {
+        padding: 10px 24px;
+        font-size: 0.95rem;
+        margin-top: 0.8rem;
+        width: 100%;
+        text-align: center;
+    }
+
+    .footer {
+        margin-top: 2rem;
+        padding: 0.8rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Адаптивность для очень маленьких экранов */
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    .header {
+        padding: 1rem 0.8rem;
+        margin-bottom: 1rem;
+        border-radius: 10px;
+    }
+
+    .header h1 {
+        font-size: 1.5rem;
+    }
+
+    .content-container {
+        padding: 1rem;
+        border-radius: 10px;
+    }
+
+    .content-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .content-section h2 {
+        font-size: 1.2rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .content-section h3 {
+        font-size: 1rem;
+        margin: 1rem 0 0.3rem 0;
+    }
+
+    .content-section p {
+        font-size: 0.9rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .content-section ul {
+        margin-left: 0.8rem;
+    }
+
+    .content-section li {
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .back-button {
+        padding: 8px 20px;
+        font-size: 0.9rem;
+    }
+
+    .footer {
+        margin-top: 1.5rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Адаптивность для ландшафтной ориентации на мобильных */
+@media (max-width: 768px) and (orientation: landscape) {
+    body {
+        padding: 10px;
+    }
+
+    .content-container {
+        max-height: 90vh;
+        overflow-y: auto;
     }
 }

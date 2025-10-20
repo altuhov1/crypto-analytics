@@ -56,8 +56,6 @@ body {
     margin-right: auto;
 }
 
-
-
 /* Hero Section */
 .hero {
     padding: 160px 0 100px;
@@ -234,56 +232,67 @@ section h2::after {
     border-top: 1px solid var(--border-color);
 }
 
-/* Responsive */
-@media (max-width: 968px) {
-    .hero-content {
-        grid-template-columns: 1fr;
-        text-align: center;
-        gap: 2rem;
-    }
-
-    .hero-text h2 {
-        font-size: 2.5rem;
-    }
-
-    .profile-photo {
-        width: 280px;
-        height: 280px;
-        margin: 0 auto;
-    }
+/* Стили для навигации */
+.nav {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-left: auto;
 }
 
-@media (max-width: 768px) {
-    .header .container {
-        padding: 0.5rem 10px; /* уменьшаем отступы */
-    }
+.nav a {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: color 0.3s;
+    position: relative;
+}
 
-    .nav {
-        /* УБИРАЕМ flex-direction: column — оставляем строку! */
-        gap: 0.5rem;
-        flex-wrap: wrap; /* позволяет переноситься, если не помещаются */
-        justify-content: center;
-    }
+.nav a:hover {
+    color: var(--accent-color);
+}
 
-    .nav .btn-outline {
-        padding: 6px 10px;
-        font-size: 0.8rem;
-    }
+.nav a::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--accent-color);
+    transition: width 0.3s;
+}
 
-    /* Убираем принудительный column для auth-buttons */
-    #auth-buttons,
-    #user-profile {
-        flex-direction: row !important;
-        gap: 0.5rem;
-    }
+.nav a:hover::after {
+    width: 100%;
+}
 
-    .hero {
-        padding: 100px 0 40px;
-    }
+#auth-buttons {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
 
-    .hero-text h2 {
-        font-size: 1.8rem;
-    }
+#user-profile {
+    display: none;
+    gap: 1rem;
+    align-items: center;
+}
+
+.nav .btn-outline {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+}
+
+#username {
+    color: var(--accent-color);
+    font-weight: 600;
+    margin-right: 10px;
 }
 
 .btn-outline {
@@ -336,17 +345,11 @@ section h2::after {
 .feature-icon.simple img {
     filter: none;
     width: 40px;
-    /* Фиксированный размер */
     height: 40px;
-    /* Фиксированный размер */
     object-fit: contain;
-    /* Сохраняет пропорции */
     image-rendering: -webkit-optimize-contrast;
-    /* Для четкости в WebKit */
     image-rendering: crisp-edges;
-    /* Четкие края */
     image-rendering: pixelated;
-    /* Для пиксельных иконок */
 }
 
 .feature-content {
@@ -366,113 +369,6 @@ section h2::after {
     margin: 0;
 }
 
-/* Адаптивность для мобильных */
-@media (max-width: 768px) {
-    .feature-card {
-        flex-direction: column;
-        text-align: center;
-        gap: 1rem;
-    }
-
-    .feature-icon {
-        align-self: center;
-    }
-
-    .feature-content h3 {
-        font-size: 1.2rem;
-    }
-}
-
-/* Альтернативный вариант с обводкой вместо градиента */
-.feature-icon.outline {
-    background: transparent;
-    border: 2px solid var(--accent-primary);
-}
-
-.feature-icon.outline img {
-    filter: none;
-    /* Возвращаем оригинальные цвета */
-}
-
-/* Стили для навигации - ИСПРАВЛЕННЫЕ */
-.nav {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    margin-left: auto;
-}
-
-.nav a {
-    text-decoration: none;
-    color: var(--text-secondary);
-    font-weight: 500;
-    transition: color 0.3s;
-    position: relative;
-}
-
-.nav a:hover {
-    color: var(--accent-color);
-}
-
-.nav a::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: var(--accent-color);
-    transition: width 0.3s;
-}
-
-.nav a:hover::after {
-    width: 100%;
-}
-
-#auth-buttons {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-}
-
-#user-profile {
-    display: none;
-    gap: 1rem;
-    align-items: center;
-}
-
-/* Убираем margin-left: auto, так как он ломает выравнивание */
-/* Добавляем общие стили для кнопок в навигации */
-.nav .btn-outline {
-    padding: 8px 16px;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 36px;
-}
-
-#username {
-    color: var(--accent-color);
-    font-weight: 600;
-    margin-right: 10px;
-}
-
-/* Адаптивность для мобильных */
-@media (max-width: 768px) {
-    .nav {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    #auth-buttons,
-    #user-profile {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-}
-
 /* Стили для навигационных кнопок */
 .nav-buttons {
     display: flex;
@@ -489,5 +385,188 @@ section h2::after {
     align-items: center;
     position: relative;
     top: 2px;
-    /* Опускаем на 1 пиксель */
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .header {
+        padding: 0.3rem 0;
+        min-height: 50px;
+        /* Уменьшил с 0.8rem */
+    }
+
+    body {
+        padding-top: 60px !important;
+        /* Вместо 80px */
+    }
+
+    .header .container {
+        padding: 0.3rem 15px;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        font-size: 1.2rem;
+        margin-right: 0;
+    }
+
+    .nav {
+        flex-direction: row;
+        gap: 0.8rem;
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+        margin-top: 1rem;
+        order: 3;
+        flex-wrap: wrap;
+    }
+
+    .nav a {
+        font-size: 0.9rem;
+        padding: 0.3rem 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    #auth-buttons,
+    #user-profile {
+        flex-direction: row;
+        gap: 0.8rem;
+        margin-left: auto;
+    }
+
+    .nav .btn-outline {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        height: 32px;
+    }
+
+    .hero {
+        padding: 100px 0 60px;
+        margin-top: 60px;
+    }
+
+    .hero-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        text-align: center;
+    }
+
+    .hero-text h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero-text p {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .profile-photo {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
+    }
+
+    .cta-buttons {
+        justify-content: center;
+        gap: 0.8rem;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        font-size: 0.9rem;
+    }
+
+    section {
+        padding: 60px 0;
+    }
+
+    section h2 {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .skills-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .skill-item {
+        padding: 1.5rem;
+    }
+
+    .feature-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+
+    .feature-icon.simple {
+        align-self: center;
+    }
+
+    .feature-content h3 {
+        font-size: 1.2rem;
+    }
+
+    .footer {
+        padding: 2rem 0;
+    }
+}
+
+/* Адаптивность для очень маленьких экранов */
+@media (max-width: 480px) {
+    .header .container {
+        padding: 0.3rem 10px;
+    }
+
+    .logo {
+        font-size: 1.2rem;
+    }
+
+    .nav {
+        gap: 0.5rem;
+    }
+
+    .nav a {
+        font-size: 0.8rem;
+        padding: 0.2rem 0.4rem;
+    }
+
+    .hero {
+        padding: 100px 0 40px;
+        margin-top: 60px;
+    }
+
+    .hero-text h2 {
+        font-size: 1.7rem;
+    }
+
+    .hero-text p {
+        font-size: 0.9rem;
+    }
+
+    .profile-photo {
+        width: 150px;
+        height: 150px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        font-size: 0.85rem;
+    }
+
+    section h2 {
+        font-size: 1.7rem;
+    }
+
+    .skill-item {
+        padding: 1rem;
+    }
+
+    .feature-card {
+        padding: 1rem;
+    }
 }

@@ -29,6 +29,7 @@ type Services struct {
 	news     *services.NewsService
 	users    *services.UserService
 	pairs    *services.CryptoPairsService
+	analysis *services.AnalysisService
 }
 
 type Storages struct {
@@ -36,6 +37,7 @@ type Storages struct {
 	users    storage.UserStorage
 	news     storage.NewsStorage
 	pairs    storage.CacheStorage
+	anslysis storage.AnalysisStorage
 }
 
 func main() {
@@ -86,11 +88,14 @@ func (a *App) initStorages() {
 
 	pairsStorage := storage.NewPairsFileStorage("storage/pairs_cache.json")
 
+	analysisStorage := storage.NewAnalysisFileStorage("storage/analysis_cache.json")
+
 	a.storages = &Storages{
 		contacts: contactsStorage,
 		users:    usersStorage,
 		news:     newsStorage,
 		pairs:    pairsStorage,
+		anslysis: analysisStorage,
 	}
 }
 
@@ -101,6 +106,7 @@ func (a *App) initServices() {
 		news:     services.NewNewsService(a.storages.news, false),
 		users:    services.NewUserService(a.storages.users),
 		pairs:    services.NewCryptoPairsService(a.storages.pairs, false),
+		analysis: services.NewAnalysisService(false, a.storages.anslysis),
 	}
 }
 
@@ -113,6 +119,7 @@ func (a *App) initHTTP() {
 		a.cfg.KeyUsersGorilla,
 		a.services.news,
 		a.services.pairs,
+		a.services.analysis,
 	)
 	if err != nil {
 		slog.Error("Failed to create handler", "error", err)
@@ -146,6 +153,9 @@ func (a *App) setupRoutes(handler *handlers.Handler) http.Handler {
 		"/api/cache-info":         handler.CacheInfoHandler,
 		"/api/all-pairs":          handler.GetAllPairsHandler,
 		"/api/select-pair":        handler.SelectPairHandler,
+		"/api/pair":               handler.GetPairInfo,
+		"/api/pairs":              handler.GetAllPairs,
+		"/api/available":          handler.GetAvailablePairs,
 	}
 
 	for path, handlerFunc := range apiRoutes {

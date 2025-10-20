@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Технический анализ - CoinSight</title>
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico" />
+    <link rel="icon" type="image/png" href="/static/images/favicon.png" />
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/analysis.css" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <a href="/">CoinSight</a>
+            </h1>
+            <nav class="nav">
+                <a href="/">Главная</a>
+                <a href="/crypto-top">Топ криптовалют</a>
+                <a href="/analysis" class="active">Технический анализ</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="analysis-container">
+
+        <div class="controls">
+            <div class="control-group">
+                <label><strong>Торговая пара:</strong></label>
+                <select id="pairSelect">
+                    <option value="BTCUSDT">BTC/USDT</option>
+                    <option value="ETHUSDT">ETH/USDT</option>
+                    <option value="BNBUSDT">BNB/USDT</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label><strong>Таймфрейм:</strong></label>
+                <select id="timeframeSelect">
+                    <option value="5m">5 минут</option>
+                    <option value="1h">1 час</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="errorContainer" style="display: none;"></div>
+
+        <div class="dashboard">
+            <div class="chart-card">
+                <h2>
+                    <span id="currentPair">BTC/USDT</span> - График цен
+                    <small id="currentTimeframe" style="color: var(--text-secondary); font-size: 1rem;">(5m)</small>
+                </h2>
+
+                <div class="chart-controls">
+                    <button class="chart-btn active" data-type="line">Линия</button>
+                    <button class="chart-btn" data-type="ohlc">OHLC</button>
+                    <button class="chart-btn" id="btnZoomReset">Сбросить масштаб</button>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="indicators-section">
+                <h2>📈 Технические индикаторы</h2>
+                <div id="indicatorsContainer">
+                    <div class="loading">
+                        <i class="fas fa-chart-line"></i><br>
+                        Выберите пару и таймфрейм для загрузки данных
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="last-update">
+            <i class="fas fa-clock"></i> Последнее обновление: <span id="lastUpdate">-</span>
+        </div>
+    </div>
+
+    <!-- Chart.js + Zoom Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/analysis.js"></script>
+</body>
+
+</html>

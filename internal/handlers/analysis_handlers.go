@@ -143,76 +143,43 @@ func (h *Handler) sendToExternalBackend(pair string) error {
 	return nil
 }
 
-// // //sdfasfasfkasl;fkjadfkasd;dfka;ldfka;'
-// type AnalysisRequest struct {
-// 	Pair      string `json:"pair"`
-// 	Timeframe string `json:"timeframe"`
-// 	UseCache  bool   `json:"useCache"`
-// }
+func (h *Handler) GetPairInfo(w http.ResponseWriter, r *http.Request) {
+	pair := r.URL.Query().Get("pair")
+	timeframe := r.URL.Query().Get("timeframe")
 
-// type AnalysisResponse struct {
-// 	Success bool                   `json:"success"`
-// 	Data    *services.AnalysisData `json:"data,omitempty"`
-// 	Error   string                 `json:"error,omitempty"`
-// }
+	if pair == "" || timeframe == "" {
+		http.Error(w, "Параметры pair и timeframe обязательны", http.StatusBadRequest)
+		return
+	}
 
-// func NewAnalysisHandler(analysisService *services.AnalysisService) *AnalysisHandler {
-// 	return &AnalysisHandler{
-// 		analysisService: analysisService,
-// 	}
-// }
+	data, err := h.amalysis.GetPairInfo(pair, timeframe)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
 
-// // AnalysisPageHandler отображает страницу анализа
-// func (h *AnalysisHandler) AnalysisPageHandler(w http.ResponseWriter, r *http.Request) {
-// 	pair := r.URL.Query().Get("pair")
-// 	if pair == "" {
-// 		pair = "BTCUSDT" // значение по умолчанию
-// 	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(data)
+}
 
-// 	// Можно передать пару в шаблон или использовать JavaScript
-// 	http.ServeFile(w, r, "templates/analysis.html")
-// }
+// GetAllPairs возвращает все пары
+func (h *Handler) GetAllPairs(w http.ResponseWriter, r *http.Request) {
+	pairs := h.amalysis.GetAllPairs()
 
-// // GetAnalysisDataHandler API для получения данных анализа
-// func (h *Handler) GetAnalysisDataHandler(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(pairs)
+}
 
-// 	if r.Method != http.MethodPost {
-// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-// 		return
-// 	}
+// GetAvailablePairs возвращает список доступных пар
+func (h *Handler) GetAvailablePairs(w http.ResponseWriter, r *http.Request) {
+	pairs := []string{"BTCUSDT", "ETHUSDT", "BNBUSDT"}
+	timeframes := []string{"5m", "1h"}
 
-// 	var req AnalysisRequest
-// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-// 		slog.Error("Failed to decode analysis request", "error", err)
-// 		json.NewEncoder(w).Encode(AnalysisResponse{
-// 			Success: false,
-// 			Error:   "Invalid request format",
-// 		})
-// 		return
-// 	}
+	response := map[string]interface{}{
+		"pairs":      pairs,
+		"timeframes": timeframes,
+	}
 
-// 	if req.Pair == "" {
-// 		req.Pair = "BTCUSDT"
-// 	}
-// 	if req.Timeframe == "" {
-// 		req.Timeframe = "1h"
-// 	}
-
-// 	slog.Info("Analysis request", "pair", req.Pair, "timeframe", req.Timeframe, "useCache", req.UseCache)
-
-// 	analysisData, err := h.analysisService.GetAnalysisData(req.Pair, req.Timeframe, req.UseCache)
-// 	if err != nil {
-// 		slog.Error("Failed to get analysis data", "error", err, "pair", req.Pair)
-// 		json.NewEncoder(w).Encode(AnalysisResponse{
-// 			Success: false,
-// 			Error:   fmt.Sprintf("Failed to load analysis data: %v", err),
-// 		})
-// 		return
-// 	}
-
-// 	json.NewEncoder(w).Encode(AnalysisResponse{
-// 		Success: true,
-// 		Data:    analysisData,
-// 	})
-// }
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}

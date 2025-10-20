@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -50,8 +51,11 @@ func (b *BinanceAPI) fetchCandlesFromBinance(symbol, interval string, limit int)
 	}
 
 	var rawCandles []BinanceCandleResponse
-	err = json.Unmarshal(body, &rawCandles)
-	if err != nil {
+
+	decoder := json.NewDecoder(bytes.NewReader(body))
+	decoder.DisallowUnknownFields() // опционально: запрещает неизвестные поля
+
+	if err := decoder.Decode(&rawCandles); err != nil {
 		return nil, fmt.Errorf("ошибка парсинга JSON: %w", err)
 	}
 

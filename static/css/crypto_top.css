@@ -1,0 +1,282 @@
+.crypto-container {
+    max-width: 1000px;
+    margin: 100px auto 50px;
+    padding: 20px;
+}
+
+.crypto-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.crypto-table th,
+.crypto-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.crypto-table th {
+    background: var(--bg-secondary);
+    color: var(--accent-primary);
+    font-weight: 600;
+}
+
+.crypto-table tr:hover {
+    background: rgba(0, 192, 139, 0.05);
+}
+
+.price-strong-positive {
+    color: #0d8a5e;
+    font-weight: 600;
+}
+
+.price-negative {
+    color: var(--error-color);
+}
+
+.crypto-rank {
+    font-weight: bold;
+    color: var(--accent-secondary);
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 2rem;
+    color: var(--accent-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.back-link:hover {
+    color: var(--accent-secondary);
+}
+
+/* Стили для сердечка */
+.heart-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 5px;
+    transition: all 0.3s ease;
+}
+
+.heart-btn:hover {
+    transform: scale(1.2);
+}
+
+.heart-btn .fa-heart {
+    color: #ccc;
+    transition: color 0.3s ease;
+}
+
+.heart-btn.liked .fa-heart {
+    color: #ff4757;
+}
+
+.heart-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Стили для кнопки избранного */
+.favorites-toggle {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.favorites-toggle:hover {
+    background: var(--accent-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 192, 139, 0.3);
+}
+
+.favorites-toggle:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.favorites-toggle.active {
+    background: #ff4757;
+}
+
+.favorites-toggle.active:hover {
+    background: #ff2e43;
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+}
+
+.favorites-count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.85em;
+}
+
+/* Стили для поля поиска */
+.search-box {
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--bg-input);
+    color: var(--text-color);
+}
+
+.search-box:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(0, 192, 139, 0.2);
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .crypto-container {
+        margin: 80px auto 30px;
+        padding: 15px;
+    }
+
+    .crypto-table {
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+
+    .crypto-table th,
+    .crypto-table td {
+        padding: 10px 8px;
+    }
+
+    .crypto-table th:nth-child(3),
+    .crypto-table td:nth-child(3),
+    .crypto-table th:nth-child(5),
+    .crypto-table td:nth-child(5) {
+        display: none;
+    }
+
+    .crypto-table th:nth-child(2),
+    .crypto-table td:nth-child(2) {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .heart-btn {
+        font-size: 1rem;
+        padding: 3px;
+    }
+
+    .favorites-toggle {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .search-box {
+        padding: 10px 14px;
+        margin-bottom: 15px;
+        font-size: 0.95rem;
+    }
+
+    .back-link {
+        margin-top: 1.5rem;
+        font-size: 0.95rem;
+        width: 100%;
+        text-align: center;
+        display: block;
+    }
+}
+
+/* Адаптивность для очень маленьких экранов */
+@media (max-width: 480px) {
+    .crypto-container {
+        margin: 70px auto 20px;
+        padding: 10px;
+    }
+
+    .crypto-table {
+        font-size: 0.85rem;
+    }
+
+    .crypto-table th,
+    .crypto-table td {
+        padding: 8px 6px;
+    }
+
+    .crypto-table th:nth-child(4),
+    .crypto-table td:nth-child(4) {
+        display: none;
+    }
+
+    .crypto-table th:nth-child(2),
+    .crypto-table td:nth-child(2) {
+        max-width: 100px;
+    }
+
+    .favorites-toggle {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .search-box {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    .price-strong-positive,
+    .price-negative {
+        font-size: 0.8rem;
+    }
+
+    .crypto-rank {
+        font-size: 0.8rem;
+    }
+}
+
+/* Адаптивность для ландшафтной ориентации на мобильных */
+@media (max-width: 768px) and (orientation: landscape) {
+    .crypto-container {
+        margin: 80px auto 20px;
+    }
+
+    .crypto-table {
+        font-size: 0.85rem;
+    }
+
+    .crypto-table th:nth-child(5),
+    .crypto-table td:nth-child(5) {
+        display: table-cell;
+    }
+}
+
+/* Улучшение отображения таблицы на мобильных */
+@media (max-width: 768px) {
+    .crypto-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .crypto-table {
+        min-width: 500px;
+    }
+}

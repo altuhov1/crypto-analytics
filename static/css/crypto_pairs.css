@@ -252,3 +252,175 @@
     text-decoration: none;
     box-shadow: 0 4px 12px rgba(0, 192, 139, 0.3);
 }
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .pairs-container {
+        margin: 80px auto 30px;
+        padding: 15px;
+    }
+
+    .search-section {
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+    }
+
+    .search-box {
+        padding: 12px 16px;
+        font-size: 1rem;
+        border-radius: 8px;
+    }
+
+    .search-results {
+        max-height: 300px;
+        margin-top: 15px;
+    }
+
+    .pair-item {
+        padding: 12px 15px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .pair-symbol {
+        font-size: 0.95rem;
+    }
+
+    .select-btn {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        align-self: flex-end;
+    }
+
+    .selected-pair-section {
+        padding: 20px;
+        margin-top: 15px;
+        border-radius: 10px;
+    }
+
+    .selected-pair {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .send-btn,
+    .clear-btn {
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .popular-pairs {
+        gap: 8px;
+        margin: 12px 0;
+        justify-content: center;
+    }
+
+    .popular-pair {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .results-count {
+        font-size: 0.85rem;
+        text-align: center;
+    }
+
+    .no-results {
+        padding: 20px;
+        font-size: 0.95rem;
+    }
+
+    .status-message {
+        margin-top: 12px;
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    .back-link {
+        margin-top: 1.5rem;
+        padding: 8px 16px;
+        font-size: 0.95rem;
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Адаптивность для очень маленьких экранов */
+@media (max-width: 480px) {
+    .pairs-container {
+        margin: 70px auto 20px;
+        padding: 10px;
+    }
+
+    .search-section {
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+    .search-box {
+        padding: 10px 14px;
+        font-size: 0.95rem;
+    }
+
+    .pair-item {
+        padding: 10px 12px;
+    }
+
+    .selected-pair-section {
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+    .selected-pair {
+        font-size: 1rem;
+    }
+
+    .send-btn,
+    .clear-btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+
+    .popular-pair {
+        padding: 5px 10px;
+        font-size: 0.8rem;
+    }
+
+    .back-link {
+        margin-top: 1rem;
+        padding: 8px 14px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Адаптивность для ландшафтной ориентации на мобильных */
+@media (max-width: 768px) and (orientation: landscape) {
+    .pairs-container {
+        margin: 80px auto 20px;
+    }
+
+    .search-results {
+        max-height: 200px;
+    }
+
+    .action-buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .send-btn,
+    .clear-btn {
+        flex: 1;
+        min-width: 120px;
+    }
+}
