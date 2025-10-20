@@ -18,7 +18,18 @@
                 <a href="/"
                     style="font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: -0.5px; font-size: 1.8rem; text-decoration: none; color: var(--accent-color);">CoinSight</a>
             </h1>
-            <nav class="nav">
+
+            <!-- Блок с ником и бургер-меню -->
+            <div class="header-user-section">
+                <span id="header-username" class="header-username"></span>
+                <button class="burger-menu" id="burger-menu" aria-label="Открыть меню">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+
+            <nav class="nav" id="main-nav">
                 <a href="/static/contactForm.html" class="btn-outline">Связаться</a>
 
                 <!-- Блок для авторизации -->
@@ -33,6 +44,9 @@
                     <a href="/logout" class="btn-outline">Выйти</a>
                 </div>
             </nav>
+
+            <!-- Оверлей для затемнения фона -->
+            <div class="nav-overlay" id="nav-overlay"></div>
         </div>
     </header>
 
@@ -142,30 +156,80 @@
     </footer>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const burgerMenu = document.getElementById('burger-menu');
+            const mainNav = document.getElementById('main-nav');
+            const navOverlay = document.getElementById('nav-overlay');
+            const body = document.body;
+
+            if (burgerMenu && mainNav && navOverlay) {
+                burgerMenu.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    this.classList.toggle('active');
+                    mainNav.classList.toggle('active');
+                    navOverlay.classList.toggle('active');
+                    // Убрал body.classList.toggle('menu-open'); - контент не сдвигается
+                });
+
+                navOverlay.addEventListener('click', function () {
+                    burgerMenu.classList.remove('active');
+                    mainNav.classList.remove('active');
+                    this.classList.remove('active');
+                    // Убрал body.classList.remove('menu-open');
+                });
+
+                const navLinks = mainNav.querySelectorAll('a');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        burgerMenu.classList.remove('active');
+                        mainNav.classList.remove('active');
+                        navOverlay.classList.remove('active');
+                        // Убрал body.classList.remove('menu-open');
+                    });
+                });
+
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth > 768) {
+                        burgerMenu.classList.remove('active');
+                        mainNav.classList.remove('active');
+                        navOverlay.classList.remove('active');
+                        // Убрал body.classList.remove('menu-open');
+                    }
+                });
+            }
+
+            checkAuth();
+        });
+
         async function checkAuth() {
             try {
                 const response = await fetch('/check-Sess-Id', {
-                    credentials: 'include' // Отправляем куки
+                    credentials: 'include'
                 });
                 const data = await response.json();
 
+                const headerUsername = document.getElementById('header-username');
+                const navUsername = document.getElementById('username');
+
                 if (data.authenticated) {
-                    // Показываем профиль
-                    document.getElementById('username').textContent = data.username;
+                    navUsername.textContent = data.username;
                     document.getElementById('user-profile').style.display = 'flex';
                     document.getElementById('auth-buttons').style.display = 'none';
+
+                    headerUsername.textContent = data.username;
+                    headerUsername.classList.add('authenticated');
+
                 } else {
-                    // Показываем кнопки входа
                     document.getElementById('auth-buttons').style.display = 'flex';
                     document.getElementById('user-profile').style.display = 'none';
+
+                    headerUsername.textContent = '';
+                    headerUsername.classList.remove('authenticated');
                 }
             } catch (error) {
                 console.error('Auth check failed:', error);
             }
         }
-
-        // Вызываем при загрузке страницы
-        document.addEventListener('DOMContentLoaded', checkAuth);
     </script>
 </body>
 

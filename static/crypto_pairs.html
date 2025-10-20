@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/static/css/crypto_pairs.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
@@ -20,12 +21,21 @@
                 <a href="/"
                     style="font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: -0.5px; font-size: 1.8rem; text-decoration: none; color: var(--accent-color);">CoinSight</a>
             </h1>
-            <nav class="nav">
+
+            <!-- Кнопка бургер-меню -->
+            <button class="burger-menu" id="burger-menu" aria-label="Открыть меню">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <nav class="nav" id="main-nav">
                 <a href="/">Главная</a>
                 <a href="/crypto-top">Топ криптовалют</a>
-                <a href="/crypto-pairs">Выбор пар</a>
-                <a href="/contact">Контакты</a>
             </nav>
+
+            <!-- Оверлей для затемнения фона -->
+            <div class="nav-overlay" id="nav-overlay"></div>
         </div>
     </header>
 
@@ -96,9 +106,51 @@
 
         // Загрузка всех пар при старте
         document.addEventListener('DOMContentLoaded', async function () {
+            // Инициализация бургер-меню
+            initBurgerMenu();
+
             await loadAllPairs();
             setupEventListeners();
         });
+
+        // Функционал бургер-меню
+        function initBurgerMenu() {
+            const burgerMenu = document.getElementById('burger-menu');
+            const mainNav = document.getElementById('main-nav');
+            const navOverlay = document.getElementById('nav-overlay');
+
+            if (burgerMenu && mainNav && navOverlay) {
+                burgerMenu.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    this.classList.toggle('active');
+                    mainNav.classList.toggle('active');
+                    navOverlay.classList.toggle('active');
+                });
+
+                navOverlay.addEventListener('click', function () {
+                    burgerMenu.classList.remove('active');
+                    mainNav.classList.remove('active');
+                    this.classList.remove('active');
+                });
+
+                const navLinks = mainNav.querySelectorAll('a');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        burgerMenu.classList.remove('active');
+                        mainNav.classList.remove('active');
+                        navOverlay.classList.remove('active');
+                    });
+                });
+
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth > 768) {
+                        burgerMenu.classList.remove('active');
+                        mainNav.classList.remove('active');
+                        navOverlay.classList.remove('active');
+                    }
+                });
+            }
+        }
 
         // Загрузка всех пар с сервера
         async function loadAllPairs() {

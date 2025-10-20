@@ -256,7 +256,7 @@
 /* Адаптивность для мобильных устройств */
 @media (max-width: 768px) {
     .pairs-container {
-        margin: 80px auto 30px;
+        margin: 30px auto 30px;
         padding: 15px;
     }
 
@@ -358,7 +358,7 @@
 /* Адаптивность для очень маленьких экранов */
 @media (max-width: 480px) {
     .pairs-container {
-        margin: 70px auto 20px;
+        margin: 50px auto 20px;
         padding: 10px;
     }
 
@@ -400,27 +400,5 @@
         margin-top: 1rem;
         padding: 8px 14px;
         font-size: 0.9rem;
-    }
-}
-
-/* Адаптивность для ландшафтной ориентации на мобильных */
-@media (max-width: 768px) and (orientation: landscape) {
-    .pairs-container {
-        margin: 80px auto 20px;
-    }
-
-    .search-results {
-        max-height: 200px;
-    }
-
-    .action-buttons {
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
-    .send-btn,
-    .clear-btn {
-        flex: 1;
-        min-width: 120px;
     }
 }

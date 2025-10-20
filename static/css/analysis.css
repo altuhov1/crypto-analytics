@@ -20,21 +20,7 @@ body {
     padding: 0;
 }
 
-.header {
-    background: #0c0c0c;
-    padding: 1rem 0;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+/* УДАЛИЛ ВСЕ СТИЛИ ДЛЯ HEADER - они уже в style.css */
 
 .logo a {
     font-family: 'Montserrat', sans-serif;
@@ -42,25 +28,10 @@ body {
     letter-spacing: -0.5px;
     font-size: 1.8rem;
     text-decoration: none;
-    color: var(--accent-color);
-}
-
-.nav {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
-}
-
-.nav a {
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: color 0.2s;
-    white-space: nowrap;
-}
-
-.nav a:hover,
-.nav a.active {
-    color: var(--accent-primary);
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .analysis-container {
@@ -370,8 +341,12 @@ canvas {
 /* Адаптация для телефона */
 @media (max-width: 768px) {
     .analysis-container {
-        margin: 80px auto 30px;
+        margin: 50px auto 30px;
         padding: 0 15px;
+    }
+
+    .logo a {
+        font-size: 1.5rem;
     }
 
     .analysis-header h1 {
@@ -382,26 +357,7 @@ canvas {
         font-size: 1rem;
     }
 
-    .header {
-        padding: 0.8rem 0;
-    }
-
-    .container {
-        padding: 0 15px;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .nav {
-        gap: 1rem;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .nav a {
-        margin-left: 0;
-        font-size: 0.9rem;
-    }
+    /* УДАЛИЛ СТИЛИ ДЛЯ HEADER - они уже в style.css */
 
     .controls {
         padding: 20px;
@@ -470,6 +426,15 @@ canvas {
 }
 
 @media (max-width: 480px) {
+    .analysis-container {
+        margin: 70px auto 20px;
+        /* Еще меньше отступ для маленьких экранов */
+    }
+
+    .logo a {
+        font-size: 1.3rem;
+    }
+
     .analysis-header h1 {
         font-size: 1.8rem;
     }

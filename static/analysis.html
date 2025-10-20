@@ -21,11 +21,21 @@
             <h1 class="logo">
                 <a href="/">CoinSight</a>
             </h1>
-            <nav class="nav">
+
+            <!-- Бургер-меню -->
+            <button class="burger-menu" id="burger-menu" aria-label="Открыть меню">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <nav class="nav" id="main-nav">
                 <a href="/">Главная</a>
                 <a href="/crypto-top">Топ криптовалют</a>
                 <a href="/analysis" class="active">Технический анализ</a>
             </nav>
+
+            <div class="nav-overlay" id="nav-overlay"></div>
         </div>
     </header>
 
@@ -89,6 +99,46 @@
     <!-- Chart.js + Zoom Plugin -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/static/js/analysis.js"></script>
+    <script>
+        // Функционал бургер-меню
+        document.addEventListener('DOMContentLoaded', function () {
+            const burgerMenu = document.getElementById('burger-menu');
+            const mainNav = document.getElementById('main-nav');
+            const navOverlay = document.getElementById('nav-overlay');
+
+            if (burgerMenu && mainNav && navOverlay) {
+                burgerMenu.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    this.classList.toggle('active');
+                    mainNav.classList.toggle('active');
+                    navOverlay.classList.toggle('active');
+                });
+
+                navOverlay.addEventListener('click', function () {
+                    burgerMenu.classList.remove('active');
+                    mainNav.classList.remove('active');
+                    this.classList.remove('active');
+                });
+
+                const navLinks = mainNav.querySelectorAll('a');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        burgerMenu.classList.remove('active');
+                        mainNav.classList.remove('active');
+                        navOverlay.classList.remove('active');
+                    });
+                });
+
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth > 768) {
+                        burgerMenu.classList.remove('active');
+                        mainNav.classList.remove('active');
+                        navOverlay.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>

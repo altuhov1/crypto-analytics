@@ -118,8 +118,18 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	session, _ := h.storeSessions.Get(r, "user-session")
-	session.Values["loggedIn"] = false
+	// Полностью удаляем куку
+	session.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	}
 	session.Save(r, w)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
