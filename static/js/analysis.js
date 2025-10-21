@@ -5,6 +5,13 @@ let originalData = null;
 let visibleStart = 0;
 let visibleEnd = 0;
 
+// Переменные для плавной анимации перекрестья
+let targetX = 0;
+let targetY = 0;
+let currentX = 0;
+let currentY = 0;
+const animationSpeed = 0.3; // скорость анимации (0-1)
+
 const pairSelect = document.getElementById('pairSelect');
 const timeframeSelect = document.getElementById('timeframeSelect');
 const currentPairEl = document.getElementById('currentPair');
@@ -13,10 +20,29 @@ const indicatorsContainer = document.getElementById('indicatorsContainer');
 const errorContainer = document.getElementById('errorContainer');
 const lastUpdateEl = document.getElementById('lastUpdate');
 
+// Определяем тип устройства и начальное количество свечей
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const INITIAL_CANDLES = isMobile ? 200 : 500;
+
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     loadData();
+    animateCrosshair(); // Запускаем анимацию перекрестья
 });
+
+// Функция анимации перекрестья
+function animateCrosshair() {
+    // Плавная интерполяция позиции
+    currentX += (targetX - currentX) * animationSpeed;
+    currentY += (targetY - currentY) * animationSpeed;
+
+    // Обновляем график если позиция изменилась
+    if (priceChart && (Math.abs(targetX - currentX) > 0.1 || Math.abs(targetY - currentY) > 0.1)) {
+        priceChart.update('none');
+    }
+
+    requestAnimationFrame(animateCrosshair);
+}
 
 function setupEventListeners() {
     pairSelect.addEventListener('change', loadData);
@@ -33,8 +59,9 @@ function setupEventListeners() {
 
     document.getElementById('btnZoomReset').addEventListener('click', () => {
         if (originalData) {
-            visibleStart = 0;
-            visibleEnd = originalData.labels.length - 1;
+            const totalPoints = originalData.labels.length;
+            visibleStart = Math.max(0, totalPoints - INITIAL_CANDLES);
+            visibleEnd = totalPoints - 1;
             updateVisibleRange(priceChart, originalData, visibleStart, visibleEnd);
         }
     });
@@ -103,7 +130,8 @@ function updatePriceChart(data) {
                 borderColor: '#f0b90b',
                 backgroundColor: 'rgba(240, 185, 11, 0.1)',
                 borderWidth: 1,
-                pointRadius: 0
+                pointRadius: 0,
+                pointHoverRadius: 0
             },
             {
                 label: 'Low',
@@ -111,7 +139,8 @@ function updatePriceChart(data) {
                 borderColor: '#f6465d',
                 backgroundColor: 'rgba(246, 70, 93, 0.1)',
                 borderWidth: 1,
-                pointRadius: 0
+                pointRadius: 0,
+                pointHoverRadius: 0
             },
             {
                 label: 'Close',
@@ -119,7 +148,8 @@ function updatePriceChart(data) {
                 borderColor: '#3b82f6',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 borderWidth: 2,
-                pointRadius: 0
+                pointRadius: 0,
+                pointHoverRadius: 0
             }
         ];
     } else {
@@ -131,7 +161,8 @@ function updatePriceChart(data) {
             borderWidth: 2,
             fill: true,
             tension: 0.1,
-            pointRadius: 0
+            pointRadius: 0,
+            pointHoverRadius: 0
         }];
     }
 
@@ -145,8 +176,9 @@ function updatePriceChart(data) {
     };
 
     // Начальная видимая область - показываем все данные
-    visibleStart = 0;
-    visibleEnd = labels.length - 1;
+    const totalPoints = labels.length;
+    visibleStart = Math.max(0, totalPoints - INITIAL_CANDLES);
+    visibleEnd = totalPoints - 1;
 
     priceChart = new Chart(ctx, {
         type: 'line',
@@ -160,19 +192,31 @@ function updatePriceChart(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: {
+                duration: 0,
+            },
             plugins: {
                 legend: {
                     display: currentChartType === 'ohlc',
                     labels: { color: '#b7b7b7' }
                 },
                 tooltip: {
+                    enabled: true,
                     mode: 'index',
                     intersect: false,
+                    backgroundColor: 'transparent',
+                    borderColor: 'transparent',
+                    titleColor: 'transparent',
+                    bodyColor: 'transparent',
+                    borderWidth: 0,
+                    cornerRadius: 0,
+                    displayColors: false,
                     callbacks: {
-                        label: function (context) {
-                            const label = context.dataset.label || '';
-                            const value = context.parsed.y;
-                            return `${label}: $${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                        label: function () {
+                            return '';
+                        },
+                        title: function () {
+                            return '';
                         }
                     }
                 }
@@ -181,10 +225,13 @@ function updatePriceChart(data) {
                 x: {
                     ticks: {
                         color: '#b7b7b7',
-                        maxTicksLimit: 10,
+                        maxTicksLimit: isMobile ? 6 : 10,
                         font: { size: 11 }
                     },
-                    grid: { color: 'rgba(183, 183, 183, 0.1)' }
+                    grid: {
+                        color: 'rgba(183, 183, 183, 0.1)',
+                        drawOnChartArea: true
+                    }
                 },
                 y: {
                     ticks: {
@@ -192,16 +239,130 @@ function updatePriceChart(data) {
                         callback: v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                         font: { size: 11 }
                     },
-                    grid: { color: 'rgba(183, 183, 183, 0.1)' }
+                    grid: {
+                        color: 'rgba(183, 183, 183, 0.1)',
+                        drawOnChartArea: true
+                    }
                 }
             },
-            interaction: { intersect: false, mode: 'index' },
+            interaction: {
+                intersect: false,
+                mode: 'index',
+                axis: 'xy'
+            },
+            datasets: {
+                line: {
+                    pointRadius: 0,
+                    pointHoverRadius: 0
+                }
+            },
             elements: {
-                point: { radius: 0, hoverRadius: 4 },
+                point: {
+                    radius: 0,
+                    hoverRadius: 0,
+                    hoverBackgroundColor: 'transparent',
+                    hoverBorderColor: 'transparent',
+                    hoverBorderWidth: 0
+                },
                 line: { tension: currentChartType === 'line' ? 0.1 : 0 }
+            },
+            hover: {
+                animationDuration: 0
             }
-        }
+        },
+        plugins: [{
+            id: 'crosshairPlugin',
+            afterDraw: function (chart) {
+                if (chart.tooltip?._active?.length) {
+                    const ctx = chart.ctx;
+                    const chartArea = chart.chartArea;
+
+                    // Обновляем целевые позиции
+                    targetX = chart.tooltip._active[0].element.x;
+                    targetY = chart.tooltip._active[0].element.y;
+
+                    // Сохраняем контекст
+                    ctx.save();
+
+                    // Вертикальная пунктирная линия (плавная)
+                    ctx.beginPath();
+                    ctx.setLineDash([5, 5]);
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = '#f0b90b';
+                    ctx.moveTo(currentX, chartArea.top);
+                    ctx.lineTo(currentX, chartArea.bottom);
+                    ctx.stroke();
+
+                    // Горизонтальная пунктирная линия (плавная)
+                    ctx.beginPath();
+                    ctx.setLineDash([5, 5]);
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = '#f0b90b';
+                    ctx.moveTo(chartArea.left, currentY);
+                    ctx.lineTo(chartArea.right, currentY);
+                    ctx.stroke();
+
+                    // Сбрасываем пунктир
+                    ctx.setLineDash([]);
+
+                    // Плашка для оси X (дата)
+                    const xLabel = chart.tooltip.dataPoints[0].label;
+                    ctx.fillStyle = 'rgba(12, 12, 12, 0.9)';
+                    ctx.strokeStyle = '#f0b90b';
+                    ctx.lineWidth = 1;
+
+                    ctx.font = '11px Inter';
+                    const xTextWidth = ctx.measureText(xLabel).width;
+                    const xRectWidth = xTextWidth + 16;
+                    const xRectHeight = 24;
+
+                    ctx.fillRect(currentX - xRectWidth / 2, chartArea.bottom + 5, xRectWidth, xRectHeight);
+                    ctx.strokeRect(currentX - xRectWidth / 2, chartArea.bottom + 5, xRectWidth, xRectHeight);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(xLabel, currentX, chartArea.bottom + 5 + xRectHeight / 2);
+
+                    // Плашка для оси Y (цена)
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'source-over';
+
+                    const yValue = chart.tooltip.dataPoints[0].parsed.y;
+                    const yLabel = '$' + yValue.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+                    ctx.font = '12px Inter';
+                    const yTextWidth = ctx.measureText(yLabel).width;
+                    const yRectWidth = yTextWidth + 16;
+                    const yRectHeight = 24;
+
+                    const yRectX = 2;
+                    ctx.fillStyle = 'rgba(12, 12, 12, 0.95)';
+                    ctx.strokeStyle = '#f0b90b';
+                    ctx.lineWidth = 1;
+                    ctx.fillRect(yRectX, currentY - yRectHeight / 2, yRectWidth, yRectHeight);
+                    ctx.strokeRect(yRectX, currentY - yRectHeight / 2, yRectWidth, yRectHeight);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(yLabel, yRectX + yRectWidth / 2, currentY);
+
+                    ctx.restore();
+                    ctx.restore();
+                }
+            }
+        }]
     });
+
+    // Сбрасываем позиции перекрестья при обновлении графика
+    targetX = 0;
+    targetY = 0;
+    currentX = 0;
+    currentY = 0;
 
     // Добавляем функцию перетаскивания
     addDragToPan(canvas, priceChart, originalData);
@@ -218,8 +379,6 @@ function addDragToPan(canvas, chart, data) {
     let initialPinchDistance = 0;
     let initialVisibleRange = 0;
     let isPinching = false;
-    let lastZoomTime = 0;
-    const ZOOM_THROTTLE_MS = 16; // ~60fps для плавности
 
     canvas.style.cursor = 'grab';
 
@@ -253,7 +412,6 @@ function addDragToPan(canvas, chart, data) {
 
     function handleWheel(e) {
         e.preventDefault();
-        // Более плавный зум для колесика
         const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
         handleZoom(zoomFactor, e.clientX);
     }
@@ -323,10 +481,6 @@ function addDragToPan(canvas, chart, data) {
     }
 
     function handleZoom(zoomFactor, centerX) {
-        const now = Date.now();
-        if (now - lastZoomTime < ZOOM_THROTTLE_MS) return;
-        lastZoomTime = now;
-
         const rect = canvas.getBoundingClientRect();
         const relativeX = (centerX - rect.left) / rect.width;
         const centerIndex = Math.round(visibleStart + (visibleEnd - visibleStart) * relativeX);
@@ -337,17 +491,14 @@ function addDragToPan(canvas, chart, data) {
         const minRange = 5;
         const totalDataPoints = data.labels.length;
 
-        // Разрешаем увеличивать до полного диапазона данных
         if (newRange >= minRange && newRange <= totalDataPoints) {
             let newStart = Math.max(0, centerIndex - Math.floor(newRange * relativeX));
             let newEnd = Math.min(totalDataPoints - 1, newStart + newRange);
 
-            // Если пытаемся показать больше чем есть данных - показываем всё
             if (newRange >= totalDataPoints - 1) {
                 newStart = 0;
                 newEnd = totalDataPoints - 1;
             } else {
-                // Корректируем границы
                 if (newEnd > totalDataPoints - 1) {
                     newEnd = totalDataPoints - 1;
                     newStart = Math.max(0, newEnd - newRange);
@@ -370,28 +521,17 @@ function addDragToPan(canvas, chart, data) {
         isPinching = true;
         initialPinchDistance = getDistance(touch1, touch2);
         initialVisibleRange = visibleEnd - visibleStart;
-        lastZoomTime = Date.now();
     }
 
     function handlePinchZoom(touch1, touch2) {
-        const now = Date.now();
-        if (now - lastZoomTime < ZOOM_THROTTLE_MS) return;
-
         const currentDistance = getDistance(touch1, touch2);
-
-        // Более плавный зум с небольшим коэффициентом
         const zoomFactor = currentDistance / initialPinchDistance;
 
         const centerX = (touch1.clientX + touch2.clientX) / 2;
-
-        // Более плавные ограничения
         const constrainedZoomFactor = Math.max(0.8, Math.min(1.2, zoomFactor));
 
         handleZoom(constrainedZoomFactor, centerX);
-
-        // Обновляем для плавности
         initialPinchDistance = currentDistance;
-        lastZoomTime = now;
     }
 
     function resetPinch() {

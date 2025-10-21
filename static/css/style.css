@@ -656,14 +656,31 @@ section h2::after {
     }
 
     .cta-buttons {
-        justify-content: center;
-        gap: 0.6rem;
-        flex-wrap: wrap;
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        margin-top: 1.5rem;
     }
 
-    .btn {
-        padding: 10px 18px;
-        font-size: 0.85rem;
+    .cta-buttons .btn {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 0.95rem;
+        text-align: center;
+        border-radius: 8px;
+    }
+
+    .cta-buttons .btn:first-child {
+        order: -1;
+    }
+
+    /* Добавим немного анимации */
+    .cta-buttons .btn {
+        transition: all 0.3s ease;
+    }
+
+    .cta-buttons .btn:active {
+        transform: scale(0.98);
     }
 
     section {
@@ -747,7 +764,7 @@ section h2::after {
 /* Десктопная версия */
 @media (min-width: 769px) {
     .header-username.authenticated {
-        display: block;
+        display: none;
         color: var(--accent-color);
         font-weight: 600;
         font-size: 0.9rem;
@@ -767,7 +784,16 @@ section h2::after {
     }
 
     .cta-buttons {
-        justify-content: flex-start;
+        gap: 0.6rem;
+    }
+
+    .cta-buttons .btn {
+        padding: 12px 18px;
+        font-size: 0.9rem;
+    }
+
+    .cta-buttons .btn:first-child {
+        order: -1;
     }
 
     .profile-photo {

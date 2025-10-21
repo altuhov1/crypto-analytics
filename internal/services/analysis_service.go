@@ -266,7 +266,7 @@ func (a *AnalysisService) calculateRSI(candles []models.Candle, period int) floa
 
 // asyncUpdatePairs асинхронно обновляет данные каждые 2 часа
 func (a *AnalysisService) asyncUpdatePairs() {
-	ticker := time.NewTicker(2 * time.Hour)
+	ticker := time.NewTicker(10 * time.Minute)
 	defer ticker.Stop()
 
 	slog.Info("Запуск асинхронного обновления данных",

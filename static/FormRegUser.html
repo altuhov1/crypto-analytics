@@ -11,7 +11,7 @@
 </head>
 
 <body>
-    
+
     <div class="form-container">
         <div class="form-header">
             <h1>Вход в аккаунт</h1>
@@ -63,9 +63,49 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
+            // Проверка на пустые поля
             if (!username || !password) {
                 e.preventDefault();
                 alert('Пожалуйста, заполните все обязательные поля!');
+                return;
+            }
+
+            // Проверка на опасные SQL символы - УНИВЕРСАЛЬНАЯ
+            const dangerousPatterns = /['"\\]|--|\/\*|\*\/|union|select|insert|update|delete|drop|create|alter|exec|script|<|>/gi;
+            // Универсальная проверка любого поля
+            function checkField(fieldValue, fieldName) {
+                const lines = fieldValue.split('\n');
+                for (let line of lines) {
+                    if (dangerousPatterns.test(line)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            if (checkField(username, 'username') || checkField(password, 'password')) {
+                e.preventDefault();
+                const errorElement = document.getElementById('errorMessage');
+                errorElement.innerHTML = `
+            <span class="error-icon">⚠️</span>
+            Обнаружены недопустимые символы в данных
+        `;
+                errorElement.classList.add('has-icon');
+                errorElement.style.display = 'flex';
+                return;
+            }
+
+            // Дополнительная проверка длины
+            if (username.length > 50 || password.length > 100) {
+                e.preventDefault();
+                const errorElement = document.getElementById('errorMessage');
+                errorElement.innerHTML = `
+            <span class="error-icon">⚠️</span>
+            Слишком длинные данные
+        `;
+                errorElement.classList.add('has-icon');
+                errorElement.style.display = 'flex';
+                return;
             }
         });
 

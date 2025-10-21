@@ -60,6 +60,16 @@ func NewPGXStorage(cfg PGXConfig) (*PGXStorage, error) {
 }
 
 func (s *PGXStorage) SaveContactFrom(contact *models.ContactForm) error {
+	if hasDangerousCharacters(contact.Name) {
+		return fmt.Errorf("name contains dangerous characters")
+	}
+	if hasDangerousCharacters(contact.Email) {
+		return fmt.Errorf("email contains dangerous characters")
+	}
+	if hasDangerousCharacters(contact.Message) {
+		return fmt.Errorf("message contains dangerous characters")
+	}
+
 	query := `
     INSERT INTO contacts (name, email, message)
     VALUES ($1, $2, $3)
@@ -96,7 +106,7 @@ func (s *PGXStorage) SaveContactFrom(contact *models.ContactForm) error {
 	return nil
 }
 
-func (s *PGXStorage) Close(){
+func (s *PGXStorage) Close() {
 	s.pool.Close()
 }
 

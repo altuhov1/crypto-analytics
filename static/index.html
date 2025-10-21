@@ -30,7 +30,6 @@
             </div>
 
             <nav class="nav" id="main-nav">
-                <a href="/static/contactForm.html" class="btn-outline">Связаться</a>
 
                 <!-- Блок для авторизации -->
                 <div id="auth-buttons" class="nav-buttons">
@@ -41,7 +40,7 @@
                 <!-- Блок для авторизованного пользователя -->
                 <div id="user-profile" class="nav-buttons">
                     <span id="username" class="username"></span>
-                    <a href="/logout" class="btn-outline">Выйти</a>
+                    <a href="#" onclick="logout()" class="btn-outline">Выйти</a>
                 </div>
             </nav>
 
@@ -61,11 +60,12 @@
                             Получайте актуальную информацию и принимайте обоснованные решения.</p>
 
                         <div class="cta-buttons">
+                            <a href="/static/analysis.html" class="btn">Графики</a>
                             <a href="/crypto-top" class="btn">Топ криптовалют</a>
                             <a href="/news" class="btn btn-outline">Новости</a>
                             <a href="/static/contactForm.html" class="btn btn-outline">Связаться с нами</a>
-                            <a href="/pairs" class="btn btn-outline">Анализ</a>
-                            <a href="/static/analysis.html" class="btn btn-outline">Графики</a>
+                            <a href="/pairs" class="btn btn-outline">Анализ AI</a>
+
                         </div>
                     </div>
                     <div class="hero-image">
@@ -156,6 +156,10 @@
     </footer>
 
     <script>
+        function logout() {
+            fetch('/logout', { method: 'POST' })
+                .then(() => window.location.reload());
+        }
         document.addEventListener('DOMContentLoaded', function () {
             const burgerMenu = document.getElementById('burger-menu');
             const mainNav = document.getElementById('main-nav');

@@ -338,6 +338,16 @@ canvas {
     user-select: none;
 }
 
+/* Стили для кастомного перекрестья */
+.chartjs-crosshair {
+    pointer-events: none;
+}
+
+/* Убедитесь, что канвас имеет правильный курсор */
+#priceChart {
+    cursor: crosshair;
+}
+
 /* Адаптация для телефона */
 @media (max-width: 768px) {
     .analysis-container {
