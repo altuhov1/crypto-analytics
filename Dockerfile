@@ -18,7 +18,6 @@ RUN go build -o bin/httpBack ./cmd/httpBack
 # Копируем необходимые файлы
 COPY static ./static
 COPY storage ./storage
-COPY bd ./bd
 
 EXPOSE 8080
 
