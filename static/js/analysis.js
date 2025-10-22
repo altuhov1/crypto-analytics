@@ -396,7 +396,7 @@ function addDragToPan(canvas, chart, data) {
     // Временная переменная для точного определения тачпада по событиям
     let isTrackpadConfirmed = isProbablyTrackpad;
 
-    // === НАСТРОЙКИ СКОРОСТИ ===
+    // === НАСТРОЙКИ СКОРОСТИ === зум
     const touchpadSensitivity = 0.9;
     const mouseZoomSpeed = 0.8;
     const touchpadZoomSpeed = 0.95;
