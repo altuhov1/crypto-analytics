@@ -1,4 +1,4 @@
-:8080 {
+45.12.237.156{
     reverse_proxy http://app:8080
     encode gzip
 }
