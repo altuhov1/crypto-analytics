@@ -369,6 +369,7 @@ function updatePriceChart(data) {
 }
 
 // Функция для добавления перетаскивания
+// Функция для добавления перетаскивания
 function addDragToPan(canvas, chart, data) {
     let isDragging = false;
     let startX = 0;
@@ -380,7 +381,25 @@ function addDragToPan(canvas, chart, data) {
     let initialVisibleRange = 0;
     let isPinching = false;
 
-    canvas.style.cursor = 'grab';
+    // Улучшенное определение устройств
+    const isTouchDevice = 'ontouchstart' in window;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // Определяем тачпад по комбинации признаков
+    const isProbablyTrackpad = isTouchDevice &&
+        !isMobile &&
+        (navigator.platform.match(/Mac/) ||
+            /Win|Linux/.test(navigator.platform));
+
+    canvas.style.cursor = isProbablyTrackpad ? 'default' : 'grab';
+
+    // Временная переменная для точного определения тачпада по событиям
+    let isTrackpadConfirmed = isProbablyTrackpad;
+
+    // === НАСТРОЙКИ СКОРОСТИ ===
+    const touchpadSensitivity = 0.9;
+    const mouseZoomSpeed = 0.8;
+    const touchpadZoomSpeed = 0.95;
 
     // === ОБРАБОТЧИКИ МЫШИ ===
     canvas.addEventListener('mousedown', handleMouseDown);
@@ -395,28 +414,73 @@ function addDragToPan(canvas, chart, data) {
     canvas.addEventListener('touchend', handleTouchEnd);
     canvas.addEventListener('touchcancel', handleTouchEnd);
 
+    // === ОСНОВНЫЕ ФУНКЦИИ ===
     function handleMouseDown(e) {
+        if (isTrackpadConfirmed) return;
         startDragging(e.clientX);
         e.preventDefault();
     }
 
     function handleMouseMove(e) {
-        if (!isDragging) return;
+        if (!isDragging || isTrackpadConfirmed) return;
         const deltaX = e.clientX - startX;
         updatePanPosition(deltaX);
     }
 
     function handleMouseUp() {
+        if (isTrackpadConfirmed) return;
         stopDragging();
     }
 
     function handleWheel(e) {
         e.preventDefault();
-        const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
-        handleZoom(zoomFactor, e.clientX);
+
+        if (!isTrackpadConfirmed && (e.deltaX !== 0 || Math.abs(e.deltaY % 1) > 0.001)) {
+            isTrackpadConfirmed = true;
+            canvas.style.cursor = 'default';
+        }
+
+        if (isTrackpadConfirmed) {
+            // ТАЧПАД: Два пальца влево/вправо = панорамирование графика
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+                const totalDataPoints = originalData.labels.length;
+                const totalVisiblePoints = visibleEnd - visibleStart;
+
+                const pixelsPerPoint = canvas.offsetWidth / totalVisiblePoints;
+                const movePoints = Math.round(e.deltaX / pixelsPerPoint * touchpadSensitivity);
+
+                // Два пальца влево (deltaX отрицательный) = график двигается ВПРАВО
+                // Два пальца вправо (deltaX положительный) = график двигается ВЛЕВО
+                let newStart = Math.max(0, visibleStart + movePoints);
+                let newEnd = Math.min(totalDataPoints - 1, newStart + totalVisiblePoints);
+
+                // Корректируем если вышли за границы
+                if (newEnd > totalDataPoints - 1) {
+                    newEnd = totalDataPoints - 1;
+                    newStart = Math.max(0, newEnd - totalVisiblePoints);
+                }
+                if (newStart < 0) {
+                    newStart = 0;
+                    newEnd = Math.min(totalDataPoints - 1, totalVisiblePoints);
+                }
+
+                if (newStart !== visibleStart || newEnd !== visibleEnd) {
+                    visibleStart = newStart;
+                    visibleEnd = newEnd;
+                    updateVisibleRange(chart, data, visibleStart, visibleEnd);
+                }
+            } else {
+                // Вертикальный скролл (два пальца вверх/вниз) = зум
+                const zoomFactor = e.deltaY > 0 ? touchpadZoomSpeed : (1 / touchpadZoomSpeed);
+                handleZoom(zoomFactor, e.clientX);
+            }
+        } else {
+            // МЫШЬ: скролл = зум
+            const zoomFactor = e.deltaY > 0 ? mouseZoomSpeed : (1 / mouseZoomSpeed);
+            handleZoom(zoomFactor, e.clientX);
+        }
     }
 
-    // === ТАЧ-ФУНКЦИИ ===
     function handleTouchStart(e) {
         if (e.touches.length === 1) {
             startDragging(e.touches[0].clientX);
@@ -448,8 +512,8 @@ function addDragToPan(canvas, chart, data) {
         }
     }
 
-    // === ОСНОВНЫЕ ФУНКЦИИ ===
     function startDragging(clientX) {
+        if (isTrackpadConfirmed) return;
         isDragging = true;
         startX = clientX;
         startVisibleStart = visibleStart;
@@ -458,26 +522,35 @@ function addDragToPan(canvas, chart, data) {
     }
 
     function stopDragging() {
+        if (isTrackpadConfirmed) return;
         isDragging = false;
         canvas.style.cursor = 'grab';
     }
 
     function updatePanPosition(deltaX) {
+        const totalDataPoints = originalData.labels.length;
         const totalVisiblePoints = startVisibleEnd - startVisibleStart;
-        const movePoints = Math.round((deltaX / canvas.offsetWidth) * totalVisiblePoints);
 
-        visibleStart = Math.max(0, startVisibleStart - movePoints);
-        visibleEnd = Math.min(data.labels.length - 1, startVisibleEnd - movePoints);
+        const pixelsPerPoint = canvas.offsetWidth / totalVisiblePoints;
+        const movePoints = Math.round(deltaX / pixelsPerPoint);
 
-        if (visibleEnd - visibleStart !== totalVisiblePoints) {
-            if (visibleStart === 0) {
-                visibleEnd = Math.min(data.labels.length - 1, totalVisiblePoints);
-            } else if (visibleEnd === data.labels.length - 1) {
-                visibleStart = Math.max(0, data.labels.length - 1 - totalVisiblePoints);
-            }
+        let newStart = Math.max(0, startVisibleStart - movePoints);
+        let newEnd = Math.min(totalDataPoints - 1, newStart + totalVisiblePoints);
+
+        if (newEnd > totalDataPoints - 1) {
+            newEnd = totalDataPoints - 1;
+            newStart = Math.max(0, newEnd - totalVisiblePoints);
+        }
+        if (newStart < 0) {
+            newStart = 0;
+            newEnd = Math.min(totalDataPoints - 1, totalVisiblePoints);
         }
 
-        updateVisibleRange(chart, data, visibleStart, visibleEnd);
+        if (newStart !== visibleStart || newEnd !== visibleEnd) {
+            visibleStart = newStart;
+            visibleEnd = newEnd;
+            updateVisibleRange(chart, data, visibleStart, visibleEnd);
+        }
     }
 
     function handleZoom(zoomFactor, centerX) {
@@ -489,34 +562,29 @@ function addDragToPan(canvas, chart, data) {
         const newRange = Math.round(currentRange / zoomFactor);
 
         const minRange = 5;
-        const totalDataPoints = data.labels.length;
+        const totalDataPoints = originalData.labels.length;
 
         if (newRange >= minRange && newRange <= totalDataPoints) {
             let newStart = Math.max(0, centerIndex - Math.floor(newRange * relativeX));
             let newEnd = Math.min(totalDataPoints - 1, newStart + newRange);
 
-            if (newRange >= totalDataPoints - 1) {
-                newStart = 0;
+            if (newEnd > totalDataPoints - 1) {
                 newEnd = totalDataPoints - 1;
-            } else {
-                if (newEnd > totalDataPoints - 1) {
-                    newEnd = totalDataPoints - 1;
-                    newStart = Math.max(0, newEnd - newRange);
-                } else if (newStart < 0) {
-                    newStart = 0;
-                    newEnd = Math.min(totalDataPoints - 1, newRange);
-                }
+                newStart = Math.max(0, newEnd - newRange);
+            }
+            if (newStart < 0) {
+                newStart = 0;
+                newEnd = Math.min(totalDataPoints - 1, newRange);
             }
 
-            requestAnimationFrame(() => {
+            if (newStart !== visibleStart || newEnd !== visibleEnd) {
                 visibleStart = newStart;
                 visibleEnd = newEnd;
                 updateVisibleRange(chart, data, visibleStart, visibleEnd);
-            });
+            }
         }
     }
 
-    // === ФУНКЦИИ ДЛЯ МУЛЬТИТАЧ ЗУМА ===
     function startPinching(touch1, touch2) {
         isPinching = true;
         initialPinchDistance = getDistance(touch1, touch2);
@@ -546,6 +614,7 @@ function addDragToPan(canvas, chart, data) {
         return Math.sqrt(dx * dx + dy * dy);
     }
 }
+
 
 // Функция для обновления видимой области графика
 function updateVisibleRange(chart, data, start, end) {

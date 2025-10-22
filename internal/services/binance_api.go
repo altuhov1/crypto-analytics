@@ -73,11 +73,6 @@ func (b *BinanceAPI) fetchCandlesFromBinance(symbol, interval string, limit int)
 		candles = append(candles, candle)
 	}
 
-	slog.Info("Успешно получены свечи с Binance",
-		"symbol", symbol,
-		"interval", interval,
-		"count", len(candles))
-
 	return candles, nil
 }
 
