@@ -1,4 +1,4 @@
-http://45.12.237.156 {
+localhost:8080 {
     reverse_proxy http://app:8080
     encode gzip
 }
