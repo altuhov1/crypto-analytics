@@ -48,6 +48,7 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./static:/usr/share/caddy
+      - ./caddy-logs:/var/log/caddy
     depends_on:
       - app
     networks:

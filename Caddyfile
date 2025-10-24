@@ -1,4 +1,15 @@
-localhost:8080 {
+:8080 {
     reverse_proxy http://app:8080
     encode gzip
+    log {
+        output file /var/log/caddy/access.log
+        output stdout 
+    }
+    
+    # Логи ошибок отдельно
+    log {
+        output file /var/log/caddy/error.log
+        output stdout
+        level error
+    }
 }
