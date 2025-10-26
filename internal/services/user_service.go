@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"sync"
 	"webdev-90-days/internal/models"
 	"webdev-90-days/internal/storage"
 
@@ -10,15 +9,11 @@ import (
 )
 
 type UserService struct {
-	userStorage storage.UserStorage // отдельное хранилище для пользователей
-	// userSessions map[string]Session
-	sessionMutex sync.RWMutex
+	userStorage storage.UserStorage
 }
 
 func NewUserService(userStorage storage.UserStorage) *UserService {
-	return &UserService{userStorage: userStorage,
-		sessionMutex: sync.RWMutex{},
-	}
+	return &UserService{userStorage: userStorage}
 }
 
 // RegisterUser - регистрация нового пользователя

@@ -17,7 +17,6 @@ import (
 
 type App struct {
 	cfg      *config.Config
-	logger   *slog.Logger
 	server   *http.Server
 	services *Services
 	storages *Storages
@@ -30,6 +29,7 @@ type Services struct {
 	users    *services.UserService
 	pairs    *services.CryptoPairsService
 	analysis *services.AnalysisService
+	sysStat  *services.SystemMonitor
 }
 
 type Storages struct {
@@ -51,8 +51,7 @@ func NewApp() *App {
 	slog.SetDefault(logger)
 
 	app := &App{
-		cfg:    cfg,
-		logger: logger,
+		cfg: cfg,
 	}
 
 	app.initStorages()
@@ -107,10 +106,12 @@ func (a *App) initServices() {
 		users:    services.NewUserService(a.storages.users),
 		pairs:    services.NewCryptoPairsService(a.storages.pairs, false),
 		analysis: services.NewAnalysisService(false, a.storages.anslysis),
+		sysStat:  services.NewSystemMonitor(),
 	}
 }
 
 func (a *App) initHTTP() {
+	go a.services.sysStat.StartStatsReporter()
 	handler, err := handlers.NewHandler(
 		a.storages.contacts,
 		a.services.notifier,

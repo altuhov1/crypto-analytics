@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
@@ -19,19 +18,6 @@ import (
 
 type UserPostgresStorage struct {
 	pool *pgxpool.Pool
-}
-
-var (
-	dangerousCharsRegex = regexp.MustCompile(`[;'"\|\&\$><!\\]`)
-	sqlInjectionRegex   = regexp.MustCompile(`(?i)(\bDROP\b|\bDELETE\b|\bUPDATE\b|\bINSERT\b|\bSELECT\b.*\bFROM\b|\bUNION\b.*\bSELECT\b|--|\/\*|\*\/|;)`)
-)
-
-// Проверка на опасные символы
-func hasDangerousCharacters(input string) bool {
-	if dangerousCharsRegex.MatchString(input) || sqlInjectionRegex.MatchString(input) {
-		fmt.Println(input)
-	}
-	return dangerousCharsRegex.MatchString(input) || sqlInjectionRegex.MatchString(input)
 }
 
 func NewUserPostgresStorage(config PGXConfig) (*UserPostgresStorage, error) {

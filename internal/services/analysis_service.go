@@ -91,9 +91,6 @@ func (a *AnalysisService) uploadApi() models.PairsCrypto {
 			"error", err)
 	}
 
-	slog.Info("Успешно загружено данных из API Binance",
-		"totalRecords", len(base))
-
 	return base
 }
 
@@ -272,7 +269,6 @@ func (a *AnalysisService) asyncUpdatePairs() {
 		"interval", "10 min")
 
 	for range ticker.C {
-		slog.Info("Начало планового обновления данных")
 
 		startTime := time.Now()
 		newPairs := a.uploadApi()
