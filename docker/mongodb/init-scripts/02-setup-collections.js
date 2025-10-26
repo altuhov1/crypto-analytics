@@ -5,13 +5,3 @@ db = db.getSiblingDB('cryptodb');
 // Создаем коллекции (автоматически создаются при первой записи)
 db.createCollection('contacts');
 
-
-// Создаем индексы для оптимизации
-db.contacts.createIndex({ "email": 1 }, { unique: true });
-db.contacts.createIndex({ "created_at": -1 });
-
-db.users.createIndex({ "username": 1 }, { unique: true });
-db.users.createIndex({ "email": 1 }, { unique: true });
-
-db.transactions.createIndex({ "user_id": 1, "created_at": -1 });
-db.transactions.createIndex({ "type": 1 });
