@@ -28,18 +28,32 @@ func (h *telegramHandler) Handle(_ context.Context, r slog.Record) error {
 	if len(h.chatIDs) == 0 {
 		return nil
 	}
-	msg := fmt.Sprintf("[%s] %s\n%s", r.Level, r.Time.Format("15:04:05"), r.Message)
 
-	go func() {
+	// Формируем базовое сообщение
+	var msg strings.Builder
+	msg.WriteString(fmt.Sprintf("[%s] %s\n", r.Level, r.Time.Format("15:04:05")))
+	msg.WriteString(fmt.Sprintf("Message: %s\n", r.Message))
+
+	// Обрабатываем атрибуты
+	if r.NumAttrs() > 0 {
+		msg.WriteString("\nAttributes:\n")
+		r.Attrs(func(attr slog.Attr) bool {
+			msg.WriteString(fmt.Sprintf("  %s: %v\n", attr.Key, attr.Value.Any()))
+			return true // продолжаем обработку
+		})
+	}
+
+	// Отправляем асинхронно
+	go func(message string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
 		for _, chatID := range h.chatIDs {
-			if err := h.sendToTelegram(ctx, chatID, msg); err != nil {
+			if err := h.sendToTelegram(ctx, chatID, message); err != nil {
 				fmt.Fprintf(os.Stderr, "[TelegramLogger] Failed to send to %s: %v\n", chatID, err)
 			}
 		}
-	}()
+	}(msg.String())
 
 	return nil
 }

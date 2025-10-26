@@ -97,8 +97,7 @@ func (s *CryptoService) refreshCache() {
 	if err := s.saveToFile(); err != nil {
 		slog.Error("Ошибка сохранения в файл:", "error", err)
 	}
-	slog.Info("Кэш обновлен.",
-		"кол монет загружено", len(coins))
+
 }
 
 func (s *CryptoService) startCacheUpdater() {
