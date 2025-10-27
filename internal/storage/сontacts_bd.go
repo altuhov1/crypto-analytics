@@ -1,4 +1,3 @@
-// storage/pgx_storage.go
 package storage
 
 import (
