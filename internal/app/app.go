@@ -54,16 +54,23 @@ func NewApp(cfg *config.Config) *App {
 }
 
 func (a *App) initStorages() {
-	dbConfig := storage.PGXConfig{
-		Host:      a.cfg.PG_DBHost,
-		Port:      a.cfg.PG_DBPort,
-		User:      a.cfg.PG_DBUser,
-		Password:  a.cfg.PG_DBPassword,
-		PG_DBName: a.cfg.PG_DBName,
-		SSLMode:   a.cfg.PG_DBSSLMode,
+	dbPGConfig := storage.PGXConfig{
+		Host:     a.cfg.PG_DBHost,
+		Port:     a.cfg.PG_DBPort,
+		User:     a.cfg.PG_DBUser,
+		Password: a.cfg.PG_DBPassword,
+		DBName:   a.cfg.PG_DBName,
+		SSLMode:  a.cfg.PG_DBSSLMode,
+	}
+	dbMongoConfig := storage.MGConfig{
+		DBUser:     a.cfg.MG_DBUser,
+		DBPassword: a.cfg.MG_DBPassword,
+		DBHost:     a.cfg.PG_DBHost,
+		DBPort:     a.cfg.MG_DBPort,
+		DBName:     a.cfg.MG_DBName,
 	}
 
-	pool, err := storage.NewPoolPg(dbConfig)
+	pool, err := storage.NewPoolPg(dbPGConfig)
 	if err != nil {
 		slog.Error("Failed to initialize storage (pool)", "error", err)
 		os.Exit(1)
