@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"log/slog"
+	"math"
 	"runtime"
 	"time"
 
@@ -28,15 +29,15 @@ func (sm *SystemMonitor) StartStatsReporter() {
 			stats := collectStats()
 			cpuUsage := sm.calculateRealCPUUsage()
 
-			slog.Info("System statistics",
+			slog.Info("====System statistics====",
 				"goroutines", stats.TotalGoroutines,
 				"cpu_cores", stats.NumCPU,
-				"cpu_usage_percent", cpuUsage,
+				"cpu_usage_percent", math.Round(cpuUsage*100*10000)/10000,
 				"alloc_memory_mb", stats.MemoryStats.Alloc/1024/1024,
 				"total_alloc_memory_mb", stats.MemoryStats.TotalAlloc/1024/1024,
 				"sys_memory_mb", stats.MemoryStats.Sys/1024/1024,
 				"num_gc", stats.MemoryStats.NumGC,
-				"gc_cpu_percent", float64(stats.MemoryStats.GCCPUFraction)*100,
+				"gc_cpu_percent", math.Round(float64(stats.MemoryStats.GCCPUFraction)*100*10000)/10000,
 			)
 
 		case <-sm.ctx.Done():
@@ -49,7 +50,7 @@ func (sm *SystemMonitor) calculateRealCPUUsage() float64 {
 	percentages, err := cpu.Percent(0, false) // Мгновенный снимок
 	if err != nil {
 		slog.Error("Failed to get CPU usage", "error", err)
-		return sm.lastCPUPercent // Возвращаем последнее известное значение
+		return sm.lastCPUPercent
 	}
 	if len(percentages) > 0 {
 		sm.lastCPUPercent = percentages[0]

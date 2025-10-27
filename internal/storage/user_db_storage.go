@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"webdev-90-days/internal/models"
+	"crypto-analytics/internal/models"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -20,26 +20,9 @@ type UserPostgresStorage struct {
 	pool *pgxpool.Pool
 }
 
-func NewUserPostgresStorage(config PGXConfig) (*UserPostgresStorage, error) {
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
-		config.User,
-		config.Password,
-		config.Host,
-		config.Port,
-		config.DBName,
-		config.SSLMode,
-	)
+func NewUserPostgresStorage(pool *pgxpool.Pool) *UserPostgresStorage {
 
-	pool, err := pgxpool.New(context.Background(), connStr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create connection pool: %w", err)
-	}
-
-	if err := pool.Ping(context.Background()); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
-	}
-
-	return &UserPostgresStorage{pool: pool}, nil
+	return &UserPostgresStorage{pool: pool}
 }
 
 func (s *UserPostgresStorage) Close() {
@@ -58,8 +41,9 @@ func (s *UserPostgresStorage) CreateUser(user *models.User) error {
 		INSERT INTO users (email, password, username, favorite_coins) 
 		VALUES ($1, $2, $3, $4)
 	`
-
-	_, err := s.pool.Exec(context.Background(), query, user.Email, user.Password, user.Username, user.FavoriteCoins)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_, err := s.pool.Exec(ctx, query, user.Email, user.Password, user.Username, user.FavoriteCoins)
 	if err != nil {
 		if strings.Contains(err.Error(), "unique constraint") {
 			if strings.Contains(err.Error(), "users_email_key") {
@@ -89,8 +73,9 @@ func (s *UserPostgresStorage) GetUserByName(nameU string) (*models.User, error) 
 
 	user := &models.User{}
 	var favoriteCoins []string
-
-	err := s.pool.QueryRow(context.Background(), query, nameU).Scan(
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	err := s.pool.QueryRow(ctx, query, nameU).Scan(
 		&user.Email,
 		&user.Password,
 		&user.Username,
@@ -119,7 +104,9 @@ func (s *UserPostgresStorage) GetAllFavoriteCoins(nameU string) ([]string, error
 	`
 
 	var favoriteCoins []string
-	err := s.pool.QueryRow(context.Background(), query, nameU).Scan(&favoriteCoins)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	err := s.pool.QueryRow(ctx, query, nameU).Scan(&favoriteCoins)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("user not found")
@@ -156,7 +143,10 @@ func (s *UserPostgresStorage) NewFavoriteCoin(nameU string, nameCoin string) err
 
 	// Проверяем, есть ли уже монета в избранном
 	var coinExists bool
-	err = tx.QueryRow(context.Background(), `
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err = tx.QueryRow(ctx, `
 		SELECT EXISTS(
 			SELECT 1 FROM users 
 			WHERE username = $1 AND $2 = ANY(favorite_coins)
@@ -167,9 +157,10 @@ func (s *UserPostgresStorage) NewFavoriteCoin(nameU string, nameCoin string) err
 	if coinExists {
 		return fmt.Errorf("coin already in list of favorite coins")
 	}
-
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 	// Добавляем монету в избранное
-	_, err = tx.Exec(context.Background(), `
+	_, err = tx.Exec(ctx, `
 		UPDATE users 
 		SET favorite_coins = array_append(favorite_coins, $1) 
 		WHERE username = $2`, nameCoin, nameU)
@@ -200,7 +191,9 @@ func (s *UserPostgresStorage) RemoveFavoriteCoin(nameU string, nameCoin string) 
 
 	// Проверяем существование пользователя
 	var exists bool
-	err = tx.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)", nameU).Scan(&exists)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	err = tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)", nameU).Scan(&exists)
 	if err != nil {
 		return fmt.Errorf("failed to check user existence: %w", err)
 	}
@@ -248,7 +241,9 @@ type PublicUser struct {
 // ExportUsersToJSON экспортирует всех пользователей (без паролей и email) в JSON файл
 func (s *UserPostgresStorage) ExportUsersToJSON(filename string) error {
 	// Выполняем запрос к БД
-	rows, err := s.pool.Query(context.Background(), `
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	rows, err := s.pool.Query(ctx, `
         SELECT id, username, favorite_coins, created_at 
         FROM users 
         ORDER BY id

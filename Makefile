@@ -1,13 +1,11 @@
-# Определяем переменные для удобства
+
 BINARY_NAME=httpBack
 CMD_PATH=./cmd/httpBack
 BUILD_DIR=./bin
 GO=go
 
-# Цель по умолчанию
 .DEFAULT_GOAL := help
 
-## help: Выводит список всех доступных команд
 help:
 	@echo "Доступные команды:"
 	@echo ""
@@ -21,24 +19,17 @@ help:
 	} \
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 	@echo ""
-
-## run: Запускает приложение в режиме разработки
 run:
 	$(GO) run $(CMD_PATH)
 
-## build: Собирает бинарный файл
 build:
 	$(GO) build -o $(BUILD_DIR)/$(BINARY_NAME) $(CMD_PATH)
-
-## clean: Очищает скомпилированные файлы
 clean:
 	rm -rf $(BUILD_DIR)
 
-## test: Запускает все тесты
 test:
 	$(GO) test ./...
 
-## deps: Устанавливает/обновляет все зависимости
 deps:
 	$(GO) mod tidy && $(GO) mod download
 

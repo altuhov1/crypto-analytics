@@ -1,8 +1,8 @@
 package handlers
 
 import (
+	"crypto-analytics/internal/models"
 	"net/http"
-	"webdev-90-days/internal/models"
 )
 
 func (h *Handler) NewsPage(w http.ResponseWriter, r *http.Request) {

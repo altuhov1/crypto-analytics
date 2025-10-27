@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"crypto-analytics/internal/models"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
-	"webdev-90-days/internal/models"
 
 	"github.com/gorilla/sessions"
 )

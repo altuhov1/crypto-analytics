@@ -1,7 +1,7 @@
 // storage/storage.go
 package storage
 
-import "webdev-90-days/internal/models"
+import "crypto-analytics/internal/models"
 
 // Storage определяет контракт для работы с данными
 type FormStorage interface {

@@ -31,14 +31,18 @@ func (h *telegramHandler) Handle(_ context.Context, r slog.Record) error {
 
 	// Формируем базовое сообщение
 	var msg strings.Builder
-	msg.WriteString(fmt.Sprintf("[%s] %s\n", r.Level, r.Time.Format("15:04:05")))
-	msg.WriteString(fmt.Sprintf("Message: %s\n", r.Message))
+	moscowLoc, err := time.LoadLocation("Europe/Moscow")
+	if err != nil {
+		return fmt.Errorf("ошибка в локал времени : LoadLocation")
+	}
+
+	msg.WriteString(fmt.Sprintf("[%s] %s\n", r.Level, r.Time.In(moscowLoc).Format("15:04:05")))
+	msg.WriteString(fmt.Sprintf("%s\n", r.Message))
 
 	// Обрабатываем атрибуты
 	if r.NumAttrs() > 0 {
-		msg.WriteString("\nAttributes:\n")
 		r.Attrs(func(attr slog.Attr) bool {
-			msg.WriteString(fmt.Sprintf("  %s: %v\n", attr.Key, attr.Value.Any()))
+			msg.WriteString(fmt.Sprintf("▪️%s: %v\n", attr.Key, attr.Value.Any()))
 			return true // продолжаем обработку
 		})
 	}

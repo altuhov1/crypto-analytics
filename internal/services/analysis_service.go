@@ -1,12 +1,12 @@
 package services
 
 import (
+	"crypto-analytics/internal/models"
+	"crypto-analytics/internal/storage"
 	"fmt"
 	"log/slog"
 	"sync"
 	"time"
-	"webdev-90-days/internal/models"
-	"webdev-90-days/internal/storage"
 )
 
 type AnalysisService struct {
@@ -30,10 +30,8 @@ func NewAnalysisService(goToApi bool, store storage.AnalysisStorage) *AnalysisSe
 	if goToApi {
 		slog.Info("Загрузка данных из API Binance")
 		service.Pairs = service.uploadApi()
-		// Запускаем асинхронное обновление каждые 2 часа
 		go service.asyncUpdatePairs()
 	} else {
-		slog.Info("Загрузка данных из хранилища")
 		service.Pairs = service.uploadFromStorage()
 	}
 
@@ -96,7 +94,6 @@ func (a *AnalysisService) uploadApi() models.PairsCrypto {
 
 // uploadFromStorage загружает данные из хранилища
 func (a *AnalysisService) uploadFromStorage() models.PairsCrypto {
-	slog.Info("Загрузка данных из хранилища")
 
 	data, err := a.store.LoadAnalysisData()
 	if err != nil {
@@ -104,9 +101,6 @@ func (a *AnalysisService) uploadFromStorage() models.PairsCrypto {
 			"error", err)
 		return models.PairsCrypto{}
 	}
-
-	slog.Info("Успешно загружено данных из хранилища",
-		"records", len(data))
 
 	return data
 }
@@ -265,9 +259,6 @@ func (a *AnalysisService) asyncUpdatePairs() {
 	ticker := time.NewTicker(10 * time.Minute)
 	defer ticker.Stop()
 
-	slog.Info("Запуск асинхронного обновления данных",
-		"interval", "10 min")
-
 	for range ticker.C {
 
 		startTime := time.Now()
@@ -279,7 +270,7 @@ func (a *AnalysisService) asyncUpdatePairs() {
 
 		duration := time.Since(startTime)
 
-		slog.Info("Данные успешно обновлены",
+		slog.Info("Данные для анализа пар с usdt успешно обновлены",
 			"duration", duration,
 			"records", len(newPairs))
 	}

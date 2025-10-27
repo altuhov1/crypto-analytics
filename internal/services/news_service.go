@@ -1,11 +1,11 @@
 package services
 
 import (
+	"crypto-analytics/internal/models"
+	"crypto-analytics/internal/storage"
 	"log/slog"
 	"sort"
 	"time"
-	"webdev-90-days/internal/models"
-	"webdev-90-days/internal/storage"
 
 	"github.com/mmcdole/gofeed"
 )

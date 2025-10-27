@@ -1,13 +1,13 @@
 package storage
 
 import (
+	"crypto-analytics/internal/models"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
 	"sync"
-	"webdev-90-days/internal/models"
 )
 
 type NewsFileStorage struct {

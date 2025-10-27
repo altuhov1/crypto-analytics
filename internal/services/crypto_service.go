@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"webdev-90-days/internal/models"
+	"crypto-analytics/internal/models"
 )
 
 type CryptoService struct {

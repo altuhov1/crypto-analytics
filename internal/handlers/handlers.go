@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"time"
 
-	"webdev-90-days/internal/models"
-	"webdev-90-days/internal/services"
-	"webdev-90-days/internal/storage"
+	"crypto-analytics/internal/models"
+	"crypto-analytics/internal/services"
+	"crypto-analytics/internal/storage"
 
 	"github.com/gorilla/sessions"
 )

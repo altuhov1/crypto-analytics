@@ -1,9 +1,9 @@
 package services
 
 import (
+	"crypto-analytics/internal/models"
+	"crypto-analytics/internal/storage"
 	"fmt"
-	"webdev-90-days/internal/models"
-	"webdev-90-days/internal/storage"
 
 	"golang.org/x/crypto/bcrypt"
 )

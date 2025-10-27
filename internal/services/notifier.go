@@ -1,6 +1,6 @@
 package services
 
-import "webdev-90-days/internal/models"
+import "crypto-analytics/internal/models"
 
 // Notifier определяет контракт для отправки уведомлений.
 type Notifier interface {

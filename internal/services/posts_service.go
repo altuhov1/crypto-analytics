@@ -1,10 +1,10 @@
 package services
 
-import (
-	"sync"
-	"webdev-90-days/internal/storage"
-)
+// import (
+// 	"sync"
+// 	"crypto-analytics/internal/storage"
+// )
 
-type PostsService struct {
-	
-}
+// type PostsService struct {
+
+// }

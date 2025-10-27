@@ -1,9 +1,9 @@
 package storage
 
 import (
+	"crypto-analytics/internal/models"
 	"encoding/json"
 	"os"
-	"webdev-90-days/internal/models"
 )
 
 type AnalysisFileStorage struct {

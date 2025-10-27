@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"time"
 
-	"webdev-90-days/internal/models"
+	"crypto-analytics/internal/models"
 )
 
 // Notifier сервис для отправки уведомлений
@@ -18,7 +18,7 @@ func NewNotifier() Notifier {
 // NotifyAdmContForm уведомляет админа о новом сообщении
 func (n *NotifierStruct) NotifyAdmContForm(contact *models.ContactForm) {
 	time.Sleep(100 * time.Millisecond) // Имитация задержки
-	slog.Info("=== УВЕДОМЛЕНИЕ ДЛЯ АДМИНА ===",
+	slog.Info("<-> УВЕДОМЛЕНИЕ ДЛЯ АДМИНА <->",
 		"user_name", contact.Name,
 		"user_email", contact.Email,
 		"message", contact.Message,
@@ -27,7 +27,7 @@ func (n *NotifierStruct) NotifyAdmContForm(contact *models.ContactForm) {
 
 func (n *NotifierStruct) NotifyAdmNewUserForm(contact *models.User) {
 	time.Sleep(100 * time.Millisecond) // Имитация задержки
-	slog.Info("=== УВЕДОМЛЕНИЕ ДЛЯ АДМИНА ===",
+	slog.Info("<-> УВЕДОМЛЕНИЕ ДЛЯ АДМИНА <->",
 		"username", contact.Username,
 		"email", contact.Email,
 		"event", "registration",

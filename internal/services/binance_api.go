@@ -2,13 +2,13 @@ package services
 
 import (
 	"bytes"
+	"crypto-analytics/internal/models"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"time"
-	"webdev-90-days/internal/models"
 )
 
 type BinanceAPI struct {

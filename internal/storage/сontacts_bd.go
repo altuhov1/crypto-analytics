@@ -9,57 +9,20 @@ import (
 	"os"
 	"time"
 
-	"webdev-90-days/internal/models"
+	"crypto-analytics/internal/models"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type PGXStorage struct {
+type ContStorage struct {
 	pool *pgxpool.Pool
 }
 
-type PGXConfig struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	DBName   string
-	SSLMode  string
+func NewContactPostgresStorage(pool *pgxpool.Pool) *ContStorage {
+	return &ContStorage{pool: pool}
 }
 
-func NewPGXStorage(cfg PGXConfig) (*PGXStorage, error) {
-	// Формируем строку подключения
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
-		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DBName, cfg.SSLMode)
-	// Создаем пул соединений
-	config, err := pgxpool.ParseConfig(connStr)
-	if err != nil {
-		return nil, fmt.Errorf("ошибка конфигурации: %w", err)
-	}
-
-	// Настройки пула
-	config.MaxConns = 10
-	config.MinConns = 2
-	config.MaxConnLifetime = time.Hour
-
-	// Подключаемся
-	pool, err := pgxpool.NewWithConfig(context.Background(), config)
-	if err != nil {
-		return nil, fmt.Errorf("ошибка подключения: %w", err)
-	}
-
-	// Проверяем соединение
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := pool.Ping(ctx); err != nil {
-		return nil, fmt.Errorf("база не отвечает: %w", err)
-	}
-
-	return &PGXStorage{pool: pool}, nil
-}
-
-func (s *PGXStorage) SaveContactFrom(contact *models.ContactForm) error {
+func (s *ContStorage) SaveContactFrom(contact *models.ContactForm) error {
 	if hasDangerousCharacters(contact.Name) {
 		return fmt.Errorf("name contains dangerous characters")
 	}
@@ -106,12 +69,12 @@ func (s *PGXStorage) SaveContactFrom(contact *models.ContactForm) error {
 	return nil
 }
 
-func (s *PGXStorage) Close() {
+func (s *ContStorage) Close() {
 	s.pool.Close()
 }
 
 // ExportContactsToJSON экспортирует контакты в JSON файл (альтернативный вариант)
-func (s *PGXStorage) ExportContactsToJSON(filename string) error {
+func (s *ContStorage) ExportContactsToJSON(filename string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -185,7 +148,7 @@ func (s *PGXStorage) ExportContactsToJSON(filename string) error {
 }
 
 // GetContactsStats возвращает статистику по контактам (дополнительный метод)
-func (s *PGXStorage) GetContactsStats() (map[string]interface{}, error) {
+func (s *ContStorage) GetContactsStats() (map[string]interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

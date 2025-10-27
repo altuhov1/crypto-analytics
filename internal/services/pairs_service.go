@@ -1,6 +1,7 @@
 package services
 
 import (
+	"crypto-analytics/internal/storage"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,7 +9,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"webdev-90-days/internal/storage"
 )
 
 type CryptoPairsService struct {
