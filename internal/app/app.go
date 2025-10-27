@@ -55,15 +55,15 @@ func NewApp(cfg *config.Config) *App {
 
 func (a *App) initStorages() {
 	dbConfig := storage.PGXConfig{
-		Host:     a.cfg.DBHost,
-		Port:     a.cfg.DBPort,
-		User:     a.cfg.DBUser,
-		Password: a.cfg.DBPassword,
-		DBName:   a.cfg.DBName,
-		SSLMode:  a.cfg.DBSSLMode,
+		Host:      a.cfg.PG_DBHost,
+		Port:      a.cfg.PG_DBPort,
+		User:      a.cfg.PG_DBUser,
+		Password:  a.cfg.PG_DBPassword,
+		PG_DBName: a.cfg.PG_DBName,
+		SSLMode:   a.cfg.PG_DBSSLMode,
 	}
 
-	pool, err := storage.NewPool(dbConfig)
+	pool, err := storage.NewPoolPg(dbConfig)
 	if err != nil {
 		slog.Error("Failed to initialize storage (pool)", "error", err)
 		os.Exit(1)
@@ -218,6 +218,7 @@ func (a *App) shutdown() {
 
 	a.storages.contacts.Close()
 	a.storages.users.Close()
+	client.Disconnect(context.Background())
 	slog.Info("Server stopped")
 	if a.cfg.LaunchLoc == "prod" {
 		time.Sleep(1 * time.Second)

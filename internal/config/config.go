@@ -27,12 +27,17 @@ func getLogLevelFromString(levelStr string) slog.Level {
 
 type Config struct {
 	ServerPort      string `env:"PORT" envDefault:"8080"`
-	DBHost          string `env:"DB_HOST" envDefault:"localhost"`
-	DBPort          int    `env:"DB_PORT" envDefault:"5432"`
-	DBUser          string `env:"DB_USER" envDefault:"webuser"`
-	DBPassword      string `env:"DB_PASSWORD" envDefault:"1111"`
-	DBName          string `env:"DB_NAME" envDefault:"webdev"`
-	DBSSLMode       string `env:"DB_SSLMODE" envDefault:"disable"`
+	PG_DBHost          string `env:"DB_PG_HOST" envDefault:"localhost"`
+	PG_DBPort       int    `env:"DB_PG_PORT" envDefault:"5432"`
+	PG_DBUser       string `env:"DB_PG_USER" envDefault:"webuser"`
+	PG_DBPassword   string `env:"DB_PG_PASSWORD" envDefault:"1111"`
+	PG_DBName       string `env:"DB_PG_NAME" envDefault:"webdev"`
+	PG_DBSSLMode    string `env:"DB_PG_SSLMODE" envDefault:"disable"`
+	MG_DBUser       string `env:"MG_DB_USER" envDefault:"admin"`
+	MG_DBPassword   string `env:"MG_DB_PASSWORD" envDefault:"password"`
+	MG_DBHost       string `env:"MG_DB_HOST" envDefault:"localhost"`
+	MG_DBPort       int    `env:"MG_DB_PORT" envDefault:"27017"`
+	MG_DBName       string `env:"MG_DB_NAME" envDefault:"mydatabase"`
 	KeyUsersGorilla string `env:"KEY_USERS_GORILLA" envDefault:"my-super-secret-key-12345"`
 	LaunchLoc       string `env:"LAUNCH_LOC" envDefault:"local"`
 	LogLevel        string `env:"LOG_LEVEL" envDefault:"info"`
