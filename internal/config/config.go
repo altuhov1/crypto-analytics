@@ -27,7 +27,7 @@ func getLogLevelFromString(levelStr string) slog.Level {
 
 type Config struct {
 	ServerPort      string `env:"PORT" envDefault:"8080"`
-	PG_DBHost          string `env:"DB_PG_HOST" envDefault:"localhost"`
+	PG_DBHost       string `env:"DB_PG_HOST" envDefault:"localhost"`
 	PG_DBPort       int    `env:"DB_PG_PORT" envDefault:"5432"`
 	PG_DBUser       string `env:"DB_PG_USER" envDefault:"webuser"`
 	PG_DBPassword   string `env:"DB_PG_PASSWORD" envDefault:"1111"`
@@ -38,6 +38,7 @@ type Config struct {
 	MG_DBHost       string `env:"MG_DB_HOST" envDefault:"localhost"`
 	MG_DBPort       int    `env:"MG_DB_PORT" envDefault:"27017"`
 	MG_DBName       string `env:"MG_DB_NAME" envDefault:"mydatabase"`
+	MG_Auth         string `env:"MG_DB_AUTH_SOURCE" envDefault:"admin"`
 	KeyUsersGorilla string `env:"KEY_USERS_GORILLA" envDefault:"my-super-secret-key-12345"`
 	LaunchLoc       string `env:"LAUNCH_LOC" envDefault:"local"`
 	LogLevel        string `env:"LOG_LEVEL" envDefault:"info"`

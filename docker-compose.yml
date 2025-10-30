@@ -27,6 +27,9 @@ services:
     volumes:
       - mongodb_data:/data/db
       - ./docker/mongodb/init-scripts:/docker-entrypoint-initdb.d:ro
+      - ./logs/mongodb_logs:/var/log/mongodb
+    command: >
+      mongod --quiet --logpath /var/log/mongodb/mongod.log --logappend
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
@@ -48,7 +51,7 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./static:/usr/share/caddy
-      - ./caddy-logs:/var/log/caddy
+      - ./logs/caddy-logs:/var/log/caddy
     depends_on:
       - app
     networks:

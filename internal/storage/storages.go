@@ -1,4 +1,3 @@
-// storage/storage.go
 package storage
 
 import "crypto-analytics/internal/models"
@@ -34,4 +33,8 @@ type CacheStorage interface {
 type AnalysisStorage interface {
 	SaveAnalysisData(data models.PairsCrypto) error
 	LoadAnalysisData() (models.PairsCrypto, error)
+}
+
+type PostStorage interface {
+	Close()
 }

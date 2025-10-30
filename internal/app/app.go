@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -38,6 +39,7 @@ type Storages struct {
 	news     storage.NewsStorage
 	pairs    storage.CacheStorage
 	anslysis storage.AnalysisStorage
+	posts    storage.PostStorage
 }
 
 func NewApp(cfg *config.Config) *App {
@@ -54,7 +56,7 @@ func NewApp(cfg *config.Config) *App {
 }
 
 func (a *App) initStorages() {
-	dbPGConfig := storage.PGXConfig{
+	dbPGConfig := &config.PGXConfig{
 		Host:     a.cfg.PG_DBHost,
 		Port:     a.cfg.PG_DBPort,
 		User:     a.cfg.PG_DBUser,
@@ -62,22 +64,33 @@ func (a *App) initStorages() {
 		DBName:   a.cfg.PG_DBName,
 		SSLMode:  a.cfg.PG_DBSSLMode,
 	}
-	dbMongoConfig := storage.MGConfig{
+	fmt.Println(dbPGConfig)
+	dbMongoConfig := &config.MGConfig{
 		DBUser:     a.cfg.MG_DBUser,
 		DBPassword: a.cfg.MG_DBPassword,
-		DBHost:     a.cfg.PG_DBHost,
+		DBHost:     a.cfg.MG_DBHost,
 		DBPort:     a.cfg.MG_DBPort,
 		DBName:     a.cfg.MG_DBName,
+		DBAuth:     a.cfg.MG_Auth,
 	}
-
-	pool, err := storage.NewPoolPg(dbPGConfig)
+	fmt.Println(dbMongoConfig)
+	poolPG, err := storage.NewPoolPg(dbPGConfig)
 	if err != nil {
-		slog.Error("Failed to initialize storage (pool)", "error", err)
+		slog.Error("Failed to initialize PG (pool)", "error", err)
 		os.Exit(1)
 	}
-	contactsStorage := storage.NewContactPostgresStorage(pool)
 
-	usersStorage := storage.NewUserPostgresStorage(pool)
+	clientMG, err := storage.NewMongoClient(dbMongoConfig)
+	if err != nil {
+		slog.Error("Failed to initialize PG (pool)", "error", err)
+		os.Exit(1)
+	}
+
+	contactsStorage := storage.NewContactPostgresStorage(poolPG)
+
+	usersStorage := storage.NewUserPostgresStorage(poolPG)
+
+	postStorage := storage.NewPostsMongoStorage(clientMG)
 
 	newsStorage := storage.NewNewsFileStorage("storage/news_cache.json")
 
@@ -91,6 +104,7 @@ func (a *App) initStorages() {
 		news:     newsStorage,
 		pairs:    pairsStorage,
 		anslysis: analysisStorage,
+		posts:    postStorage,
 	}
 }
 
@@ -225,7 +239,7 @@ func (a *App) shutdown() {
 
 	a.storages.contacts.Close()
 	a.storages.users.Close()
-	client.Disconnect(context.Background())
+	a.storages.posts.Close()
 	slog.Info("Server stopped")
 	if a.cfg.LaunchLoc == "prod" {
 		time.Sleep(1 * time.Second)

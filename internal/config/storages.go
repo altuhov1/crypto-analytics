@@ -1,4 +1,4 @@
-package storage
+package config
 
 type PGXConfig struct {
 	Host     string
@@ -15,4 +15,5 @@ type MGConfig struct {
 	DBHost     string
 	DBPort     int
 	DBName     string
+	DBAuth     string
 }
