@@ -46,7 +46,7 @@ func (p *PostMongoStorage) createPost(ctx context.Context, person, heading, main
 	}
 	return id, nil
 }
-func createComment(ctx context.Context, coll *mongo.Collection, person, mainText, date string, postID bson.ObjectID) error {
+func (p *PostMongoStorage) createComment(ctx context.Context, person, mainText, date string, postID bson.ObjectID) error {
 	comment := models.Comment{
 		ID:       bson.NewObjectID(),
 		Person:   person,
@@ -55,7 +55,7 @@ func createComment(ctx context.Context, coll *mongo.Collection, person, mainText
 		PostID:   postID, // ссылка на пост
 	}
 
-	_, err := coll.InsertOne(ctx, comment)
+	_, err := p.collComm.InsertOne(ctx, comment)
 	return err
 }
 

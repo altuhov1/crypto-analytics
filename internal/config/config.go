@@ -8,23 +8,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// getLogLevelFromString преобразует строку в slog.Level
-// Используется и в MustLoad (до парсинга cfg), и в GetLogLevel (после)
-func getLogLevelFromString(levelStr string) slog.Level {
-	switch strings.ToLower(levelStr) {
-	case "debug":
-		return slog.LevelDebug
-	case "info":
-		return slog.LevelInfo
-	case "warn", "warning":
-		return slog.LevelWarn
-	case "error":
-		return slog.LevelError
-	default:
-		return slog.LevelInfo
-	}
-}
-
 type Config struct {
 	ServerPort      string `env:"PORT" envDefault:"8080"`
 	PG_DBHost       string `env:"DB_PG_HOST" envDefault:"localhost"`
@@ -46,11 +29,25 @@ type Config struct {
 	TgChatIDs       string `env:"TG_CHAT_IDS" envDefault:""`
 }
 
+func getLogLevelFromString(levelStr string) slog.Level {
+	switch strings.ToLower(levelStr) {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warn", "warning":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
+}
+
 func MustLoad() *Config {
 
 	logger := NewEarlyLogger()
 
-	// Загружаем .env (если есть)
 	if err := godotenv.Load(); err != nil {
 
 		logger.Debug("Failed to load .env file", "error", err)
