@@ -28,7 +28,7 @@ type Handler struct {
 	newsStorage   *services.NewsService
 	pairs         *services.CryptoPairsService
 	amalysis      *services.AnalysisService
-	posts         *services.PostsService
+	postsService  *services.PostsService
 }
 
 // NewHandler создает новый экземпляр Handler
@@ -69,10 +69,10 @@ func NewHandler(storage storage.FormStorage,
 		tmpl:        tmpl,
 		storeSessions: sessions.NewCookieStore(
 			[]byte(KeyUsersGorilla)),
-		newsStorage: newsStor,
-		pairs:       pairss,
-		amalysis:    amalys,
-		posts:       post,
+		newsStorage:  newsStor,
+		pairs:        pairss,
+		amalysis:     amalys,
+		postsService: post,
 	}, nil
 }
 

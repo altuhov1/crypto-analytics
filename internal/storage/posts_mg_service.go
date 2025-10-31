@@ -23,7 +23,6 @@ type PostMongoStorage struct {
 }
 
 func NewPostsMongoStorage(client *mongo.Client) *PostMongoStorage {
-
 	return &PostMongoStorage{
 		client:    client,
 		collPosts: client.Database(DBName).Collection(PostsCollName),
@@ -39,6 +38,7 @@ func (p *PostMongoStorage) CreatePost(ctx context.Context, post models.Post) (bs
 	}
 	return post.ID, nil
 }
+
 func (p *PostMongoStorage) CreateComment(
 	ctx context.Context,
 	comment models.Comment,
@@ -61,6 +61,7 @@ func (p *PostMongoStorage) CreateComment(
 
 	return nil
 }
+
 func (p *PostMongoStorage) GetLastPosts(ctx context.Context) ([]models.Post, error) {
 	cursor, err := p.collPosts.Find(
 		ctx,
@@ -98,6 +99,115 @@ func (p *PostMongoStorage) GetLastCommentsByPost(ctx context.Context, postID bso
 	}
 	return comments, nil
 }
+
+func (p *PostMongoStorage) DeletePost(ctx context.Context, postID bson.ObjectID, author string) error {
+	var post models.Post
+	err := p.collPosts.FindOne(ctx, bson.M{"_id": postID, "person": author}).Decode(&post)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return mongo.ErrNoDocuments
+		}
+		return err
+	}
+
+	_, err = p.collComm.DeleteMany(ctx, bson.M{"postId": postID})
+	if err != nil {
+		return err
+	}
+	_, err = p.collPosts.DeleteOne(ctx, bson.M{"_id": postID})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *PostMongoStorage) DeleteComment(ctx context.Context, commentID bson.ObjectID, author string) error {
+	var comment models.Comment
+	err := p.collComm.FindOne(ctx, bson.M{"_id": commentID, "person": author}).Decode(&comment)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return mongo.ErrNoDocuments
+		}
+		return err
+	}
+
+	_, err = p.collComm.DeleteOne(ctx, bson.M{"_id": commentID})
+	if err != nil {
+		return err
+	}
+
+	_, err = p.collPosts.UpdateOne(
+		ctx,
+		bson.M{"_id": comment.PostID},
+		bson.M{"$pull": bson.M{"commentIds": commentID}},
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *PostMongoStorage) UpdatePost(
+	ctx context.Context,
+	postID bson.ObjectID,
+	author string,
+	title string,
+	content string,
+) error {
+
+	var existingPost models.Post
+	err := p.collPosts.FindOne(ctx, bson.M{"_id": postID}).Decode(&existingPost)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+
+			return mongo.ErrNoDocuments
+		}
+
+		return err
+	}
+
+	if existingPost.Person != author {
+		return mongo.ErrNoDocuments
+	}
+
+	_, err = p.collPosts.UpdateOne(
+		ctx,
+		bson.M{"_id": postID, "person": author},
+		bson.M{"$set": bson.M{
+			"heading":   title,
+			"mainText":  content,
+			"updatedAt": time.Now(),
+		}},
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *PostMongoStorage) UpdateComment(
+	ctx context.Context,
+	commentID bson.ObjectID,
+	author string,
+	content string,
+) error {
+	res, err := p.collComm.UpdateOne(
+		ctx,
+		bson.M{"_id": commentID, "person": author},
+		bson.M{"$set": bson.M{"mainText": content}},
+	)
+	if err != nil {
+		return err
+	}
+	if res.MatchedCount == 0 {
+		return mongo.ErrNoDocuments
+	}
+	return nil
+}
+
 func (p *PostMongoStorage) Close() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

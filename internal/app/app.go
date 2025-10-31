@@ -170,6 +170,14 @@ func (a *App) setupRoutes(handler *handlers.Handler) http.Handler {
 		"/api/pair":               handler.GetPairInfo,
 		"/api/pairs":              handler.GetAllPairs,
 		"/api/available":          handler.GetAvailablePairs,
+		"/api/posts/create":       handler.CreatePostHandler,
+		"/api/comments/create":    handler.CreateCommentHandler,
+		"/api/posts":              handler.GetPostsHandler,
+		"/api/comments":           handler.GetCommentsHandler,
+		"/api/posts/update":       handler.UpdatePostHandler,
+		"/api/posts/delete":       handler.UpdatePostHandler,
+		"/api/comments/update":    handler.UpdateCommentHandler,
+		"/api/comments/delete":    handler.DeleteCommentHandler,
 	}
 
 	for path, handlerFunc := range apiRoutes {

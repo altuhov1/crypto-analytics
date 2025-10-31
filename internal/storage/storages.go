@@ -50,6 +50,20 @@ type PostStorage interface {
 	GetLastCommentsByPost(ctx context.Context,
 		postID bson.ObjectID,
 	) ([]models.Comment, error)
-
+	DeletePost(ctx context.Context, postID bson.ObjectID, author string) error
+	DeleteComment(ctx context.Context, commentID bson.ObjectID, author string) error
+	UpdatePost(
+		ctx context.Context,
+		postID bson.ObjectID,
+		author string,
+		title string,
+		content string,
+	) error
+	UpdateComment(
+		ctx context.Context,
+		commentID bson.ObjectID,
+		author string,
+		content string,
+	) error
 	Close()
 }

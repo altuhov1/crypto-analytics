@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Analytics - Сообщество</title>
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/posts.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        .create-post-section {
+            padding-top: 100px !important;
+        }
+
+        .posts-section {
+            padding-top: 40px;
+        }
+
+        .post-footer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .post-main-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .post-user-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-edit,
+        .btn-delete {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-weight: 500;
+        }
+
+        .btn-edit {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        .btn-edit:hover {
+            background: #f8d33a;
+            transform: translateY(-1px);
+        }
+
+        .btn-delete {
+            background: #f6465d;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #e5354d;
+            transform: translateY(-1px);
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .comment-btn-edit,
+        .comment-btn-delete {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .comment-btn-edit {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        .comment-btn-edit:hover {
+            background: #f8d33a;
+        }
+
+        .comment-btn-delete {
+            background: #f6465d;
+            color: white;
+        }
+
+        .comment-btn-delete:hover {
+            background: #e5354d;
+        }
+
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: opacity;
+        }
+
+        .modal-content,
+        .edit-modal-content {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+            margin: 0 auto;
+            transform: translateY(30px) scale(0.95);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            will-change: transform, opacity;
+        }
+
+        .modal.active {
+            opacity: 1;
+        }
+
+        .modal.active .modal-content,
+        .modal.active .edit-modal-content {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .modal-header h3 {
+            color: var(--text-primary);
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+
+        .close-modal,
+        .close-edit-modal {
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            background: none;
+            border: none;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .close-modal:hover,
+        .close-edit-modal:hover {
+            color: var(--accent-color);
+            background: var(--secondary-bg);
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(240, 185, 11, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .char-counter {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            background: var(--secondary-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            z-index: 2;
+        }
+
+        .form-group textarea {
+            padding-right: 60px !important;
+        }
+
+        .post-content,
+        .comment-content {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .post-content br,
+        .comment-content br {
+            display: block;
+            margin-bottom: 0.5em;
+            content: "";
+        }
+
+        .post-card,
+        .comment-card {
+            padding: 24px;
+        }
+
+        .post-content {
+            margin-bottom: 16px;
+        }
+
+        .comment-content {
+            margin: 0;
+        }
+
+        .btn-edit,
+        .btn-delete,
+        .comment-btn-edit,
+        .comment-btn-delete {
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+
+        .btn-edit:hover,
+        .btn-delete:hover,
+        .comment-btn-edit:hover,
+        .comment-btn-delete:hover {
+            transform: translateY(-1px) translateZ(0);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @media (max-width: 768px) {
+            .create-post-section {
+                padding-top: 80px !important;
+            }
+
+            .modal-content,
+            .edit-modal-content {
+                width: 95%;
+                max-width: 95%;
+            }
+
+            .post-card,
+            .comment-card {
+                padding: 20px;
+            }
+
+            .post-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .post-main-actions,
+            .post-user-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .modal-header {
+                padding: 15px 20px;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .post-card,
+            .comment-card {
+                padding: 16px;
+            }
+
+            .btn-edit,
+            .btn-delete {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <a href="/"
+                    style="font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: -0.5px; font-size: 1.8rem; text-decoration: none; color: var(--accent-color);">CoinSight</a>
+            </h1>
+
+            <div class="header-user-section">
+                <span id="header-username" class="header-username"></span>
+                <button class="burger-menu" id="burger-menu" aria-label="Открыть меню">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+
+            <nav class="nav" id="main-nav">
+                <div id="auth-buttons" class="nav-buttons">
+                    <a href="/static/FormRegUser.html" class="btn-outline">Войти</a>
+                    <a href="/static/FormNewUser.html" class="btn-outline">Зарегистрироваться</a>
+                </div>
+
+                <div id="user-profile" class="nav-buttons">
+                    <span id="username" class="username"></span>
+                    <a href="#" onclick="logout()" class="btn-outline">Выйти</a>
+                </div>
+            </nav>
+
+            <div class="nav-overlay" id="nav-overlay"></div>
+        </div>
+    </header>
+
+    <main>
+        <section id="create-post" class="create-post-section" style="display: none;">
+            <div class="container">
+                <div class="post-form-container">
+                    <h3>Создать новый пост</h3>
+                    <form id="post-form" class="post-form">
+                        <div class="form-group">
+                            <label for="post-heading">Заголовок</label>
+                            <input type="text" id="post-heading" name="heading" required maxlength="200"
+                                placeholder="Введите заголовок поста">
+                            <span class="char-counter" id="heading-counter">0/200</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="post-content">Содержание</label>
+                            <textarea id="post-content" name="mainText" required maxlength="5000"
+                                placeholder="Напишите содержание поста..." rows="6"></textarea>
+                            <span class="char-counter" id="content-counter">0/5000</span>
+                        </div>
+                        <button type="submit" class="btn">Опубликовать пост</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section id="posts-section" class="posts-section">
+            <div class="container">
+                <h2>Сообщество CoinSight</h2>
+                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">
+                    Обсуждайте криптовалюты, делитесь анализом и задавайте вопросы
+                </p>
+                <div id="posts-loading" class="loading">Загрузка постов...</div>
+                <div id="posts-container" class="posts-container"></div>
+                <div id="no-posts" class="no-posts" style="display: none;">
+                    <p>Пока нет постов. Будьте первым!</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Модальное окно для комментариев -->
+    <div id="comments-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-post-title">Комментарии</h3>
+                <span class="close-modal" id="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="comment-form-container" style="display: none;">
+                    <form id="comment-form" class="comment-form">
+                        <div class="form-group">
+                            <textarea id="comment-text" name="mainText" required maxlength="1000"
+                                placeholder="Напишите комментарий..." rows="3"></textarea>
+                            <span class="char-counter" id="comment-counter">0/1000</span>
+                        </div>
+                        <button type="submit" class="btn">Отправить комментарий</button>
+                    </form>
+                </div>
+
+                <div id="comments-loading" class="loading">Загрузка комментариев...</div>
+                <div id="comments-container" class="comments-container"></div>
+                <div id="no-comments" class="no-comments" style="display: none;">
+                    <p>Пока нет комментариев. Будьте первым!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для редактирования поста -->
+    <div id="edit-post-modal" class="modal" style="display: none;">
+        <div class="edit-modal-content">
+            <div class="modal-header">
+                <h3>Редактировать пост</h3>
+                <span class="close-edit-modal" id="close-edit-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="edit-post-form" class="post-form">
+                    <input type="hidden" id="edit-post-id">
+                    <div class="form-group">
+                        <label for="edit-post-heading">Заголовок</label>
+                        <input type="text" id="edit-post-heading" name="heading" required maxlength="200"
+                            placeholder="Введите заголовок поста">
+                        <span class="char-counter" id="edit-heading-counter">0/200</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-post-content">Содержание</label>
+                        <textarea id="edit-post-content" name="mainText" required maxlength="5000"
+                            placeholder="Напишите содержание поста..." rows="8"></textarea>
+                        <span class="char-counter" id="edit-content-counter">0/5000</span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn">Сохранить изменения</button>
+                        <button type="button" class="btn btn-outline" onclick="closeEditModal()">Отмена</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для редактирования комментария -->
+    <div id="edit-comment-modal" class="modal" style="display: none;">
+        <div class="edit-modal-content">
+            <div class="modal-header">
+                <h3>Редактировать комментарий</h3>
+                <span class="close-edit-comment-modal" id="close-edit-comment-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="edit-comment-form" class="comment-form">
+                    <input type="hidden" id="edit-comment-id">
+                    <div class="form-group">
+                        <label for="edit-comment-content">Комментарий</label>
+                        <textarea id="edit-comment-content" name="mainText" required maxlength="1000"
+                            placeholder="Введите текст комментария..." rows="5"></textarea>
+                        <span class="char-counter" id="edit-comment-counter">0/1000</span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn">Сохранить изменения</button>
+                        <button type="button" class="btn btn-outline" onclick="closeEditCommentModal()">Отмена</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Crypto Analytics. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <script>
+        let currentPostId = null;
+        let isAuthenticated = false;
+        let currentUsername = '';
+
+        // Функции для работы с текстом
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function escapeJs(str) {
+            if (!str) return '';
+            return str
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '\\"')
+                .replace(/\n/g, '\\n')
+                .replace(/\r/g, '\\r')
+                .replace(/\t/g, '\\t')
+                .replace(/\f/g, '\\f');
+        }
+
+        function formatDisplayText(text) {
+            if (!text) return '';
+
+            let cleanedText = text
+                .replace(/\\\\/g, '\\')
+                .replace(/\\n/g, '\n')
+                .replace(/\\\\n/g, '\n');
+
+            const div = document.createElement('div');
+            div.textContent = cleanedText;
+            let safeText = div.innerHTML;
+
+            safeText = safeText.replace(/\n/g, '<br>');
+
+            return safeText;
+        }
+
+        function prepareTextForAttribute(text) {
+            if (!text) return '';
+            return text
+                .replace(/\\\\/g, '\\')
+                .replace(/\\n/g, '\n')
+                .replace(/\\\\n/g, '\n');
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeBurgerMenu();
+            checkAuth().then(() => {
+                loadPosts();
+                setupEventListeners();
+                initializeCharCounters();
+            });
+        });
+
+        function initializeBurgerMenu() {
+            const burgerMenu = document.getElementById('burger-menu');
+            const mainNav = document.getElementById('main-nav');
+            const navOverlay = document.getElementById('nav-overlay');
+
+            if (burgerMenu && mainNav && navOverlay) {
+                burgerMenu.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    this.classList.toggle('active');
+                    mainNav.classList.toggle('active');
+                    navOverlay.classList.toggle('active');
+                });
+
+                navOverlay.addEventListener('click', function () {
+                    burgerMenu.classList.remove('active');
+                    mainNav.classList.remove('active');
+                    this.classList.remove('active');
+                });
+
+                const navLinks = mainNav.querySelectorAll('a');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        burgerMenu.classList.remove('active');
+                        mainNav.classList.remove('active');
+                        navOverlay.classList.remove('active');
+                    });
+                });
+
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth > 768) {
+                        burgerMenu.classList.remove('active');
+                        mainNav.classList.remove('active');
+                        navOverlay.classList.remove('active');
+                    }
+                });
+            }
+        }
+
+        function initializeCharCounters() {
+            const inputs = [
+                { element: document.getElementById('post-heading'), counter: 'heading-counter', max: 200 },
+                { element: document.getElementById('post-content'), counter: 'content-counter', max: 5000 },
+                { element: document.getElementById('comment-text'), counter: 'comment-counter', max: 1000 },
+                { element: document.getElementById('edit-post-heading'), counter: 'edit-heading-counter', max: 200 },
+                { element: document.getElementById('edit-post-content'), counter: 'edit-content-counter', max: 5000 },
+                { element: document.getElementById('edit-comment-content'), counter: 'edit-comment-counter', max: 1000 }
+            ];
+
+            inputs.forEach(input => {
+                if (input.element) {
+                    const counter = document.getElementById(input.counter);
+                    if (counter) {
+                        counter.textContent = input.element.value.length + '/' + input.max;
+                    }
+
+                    input.element.addEventListener('input', function () {
+                        const counter = document.getElementById(input.counter);
+                        if (counter) {
+                            counter.textContent = this.value.length + '/' + input.max;
+                        }
+                    });
+                }
+            });
+        }
+
+        async function checkAuth() {
+            try {
+                const response = await fetch('/check-Sess-Id', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+
+                const headerUsername = document.getElementById('header-username');
+                const navUsername = document.getElementById('username');
+
+                if (data.authenticated) {
+                    isAuthenticated = true;
+                    currentUsername = data.username;
+                    navUsername.textContent = data.username;
+                    document.getElementById('user-profile').style.display = 'flex';
+                    document.getElementById('auth-buttons').style.display = 'none';
+
+                    headerUsername.textContent = data.username;
+                    headerUsername.classList.add('authenticated');
+
+                    document.getElementById('create-post').style.display = 'block';
+                    document.getElementById('comment-form-container').style.display = 'block';
+                } else {
+                    isAuthenticated = false;
+                    currentUsername = '';
+                    document.getElementById('auth-buttons').style.display = 'flex';
+                    document.getElementById('user-profile').style.display = 'none';
+
+                    headerUsername.textContent = '';
+                    headerUsername.classList.remove('authenticated');
+
+                    document.getElementById('create-post').style.display = 'none';
+                    document.getElementById('comment-form-container').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('post-form').addEventListener('submit', createPost);
+            document.getElementById('comment-form').addEventListener('submit', createComment);
+            document.getElementById('edit-post-form').addEventListener('submit', updatePost);
+            document.getElementById('edit-comment-form').addEventListener('submit', updateComment);
+
+            document.getElementById('close-modal').addEventListener('click', closeCommentsModal);
+            document.getElementById('close-edit-modal').addEventListener('click', closeEditModal);
+            document.getElementById('close-edit-comment-modal').addEventListener('click', closeEditCommentModal);
+
+            document.getElementById('comments-modal').addEventListener('click', function (e) {
+                if (e.target === this) closeCommentsModal();
+            });
+
+            document.getElementById('edit-post-modal').addEventListener('click', function (e) {
+                if (e.target === this) closeEditModal();
+            });
+
+            document.getElementById('edit-comment-modal').addEventListener('click', function (e) {
+                if (e.target === this) closeEditCommentModal();
+            });
+        }
+
+        async function loadPosts() {
+            try {
+                document.getElementById('posts-loading').style.display = 'block';
+                document.getElementById('no-posts').style.display = 'none';
+
+                const response = await fetch('/api/posts');
+                const data = await response.json();
+
+                document.getElementById('posts-loading').style.display = 'none';
+
+                if (data.success && data.posts && data.posts.length > 0) {
+                    renderPosts(data.posts);
+                } else {
+                    document.getElementById('no-posts').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Failed to load posts:', error);
+                document.getElementById('posts-loading').style.display = 'none';
+                document.getElementById('no-posts').style.display = 'block';
+            }
+        }
+
+        function renderPosts(posts) {
+            const container = document.getElementById('posts-container');
+            container.innerHTML = '';
+
+            posts.forEach((post) => {
+                const postElement = document.createElement('div');
+                postElement.className = 'post-card';
+
+                const postId = post.ID || post._id || post.id;
+                const commentCount = post.CommentIDs ? post.CommentIDs.length : 0;
+                const postAuthor = post.Person || post.person;
+                const isOwnPost = isAuthenticated && postAuthor === currentUsername;
+                const title = post.Heading || post.heading;
+                const content = post.MainText || post.mainText;
+
+                const cleanTitle = prepareTextForAttribute(title);
+                const cleanContent = prepareTextForAttribute(content);
+                const escapedPostId = escapeJs(postId.toString());
+
+                postElement.innerHTML = `
+                <div class="post-header">
+                    <h3 class="post-title">${escapeHtml(title)}</h3>
+                    <span class="post-date">${formatDate(post.Date || post.date)}</span>
+                </div>
+                <div class="post-author">
+                    Автор: ${escapeHtml(postAuthor)}
+                </div>
+                <div class="post-content">${formatDisplayText(content)}</div>
+                <div class="post-footer">
+                    <div class="post-main-actions">
+                        <button class="btn-outline view-comments" data-post-id="${postId}">
+                            Комментарии (${commentCount})
+                        </button>
+                    </div>
+                    ${isOwnPost ? `
+                    <div class="post-user-actions">
+                        <button class="btn-edit" data-post-id="${postId}" data-title="${cleanTitle}" data-content="${cleanContent}">
+                            Редактировать
+                        </button>
+                        <button class="btn-delete" data-post-id="${postId}">
+                            Удалить
+                        </button>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+                container.appendChild(postElement);
+            });
+
+            document.querySelectorAll('.view-comments').forEach(button => {
+                button.addEventListener('click', function () {
+                    const postId = this.getAttribute('data-post-id');
+                    const postTitle = this.closest('.post-card').querySelector('.post-title').textContent;
+                    openCommentsModal(postId, postTitle);
+                });
+            });
+
+            document.querySelectorAll('.btn-edit').forEach(button => {
+                button.addEventListener('click', function () {
+                    const postId = this.getAttribute('data-post-id');
+                    const title = this.getAttribute('data-title');
+                    const content = this.getAttribute('data-content');
+                    openEditPostModal(postId, title, content);
+                });
+            });
+
+            document.querySelectorAll('.btn-delete').forEach(button => {
+                button.addEventListener('click', function () {
+                    const postId = this.getAttribute('data-post-id');
+                    deletePost(postId);
+                });
+            });
+        }
+
+        function openEditPostModal(postId, title, content) {
+            document.getElementById('edit-post-id').value = postId;
+            document.getElementById('edit-post-heading').value = title;
+            document.getElementById('edit-post-content').value = content;
+
+            initializeCharCounters();
+
+            const modal = document.getElementById('edit-post-modal');
+            modal.style.display = 'flex';
+
+            requestAnimationFrame(() => {
+                modal.classList.add('active');
+            });
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('edit-post-modal');
+            modal.classList.remove('active');
+
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        function openEditCommentModal(commentId, content) {
+            document.getElementById('edit-comment-id').value = commentId;
+            document.getElementById('edit-comment-content').value = content;
+
+            initializeCharCounters();
+
+            const modal = document.getElementById('edit-comment-modal');
+            modal.style.display = 'flex';
+
+            requestAnimationFrame(() => {
+                modal.classList.add('active');
+            });
+        }
+
+        function closeEditCommentModal() {
+            const modal = document.getElementById('edit-comment-modal');
+            modal.classList.remove('active');
+
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        async function updatePost(e) {
+            e.preventDefault();
+
+            const postId = document.getElementById('edit-post-id').value;
+            const title = document.getElementById('edit-post-heading').value;
+            const content = document.getElementById('edit-post-content').value;
+
+            const formData = {
+                postId: postId,
+                author: currentUsername,
+                title: title,
+                content: content
+            };
+
+            try {
+                const response = await fetch('/api/posts/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                let data;
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    const text = await response.text();
+                    throw new Error(`Server returned: ${text}`);
+                }
+
+                if (data.success) {
+                    closeEditModal();
+                    loadPosts();
+                } else {
+                    alert('Ошибка при обновлении поста: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Failed to update post:', error);
+                alert('Ошибка при обновлении поста: ' + error.message);
+            }
+        }
+
+        async function updateComment(e) {
+            e.preventDefault();
+
+            const commentId = document.getElementById('edit-comment-id').value;
+            const content = document.getElementById('edit-comment-content').value;
+
+            const formData = {
+                commentId: commentId,
+                author: currentUsername,
+                content: content
+            };
+
+            try {
+                const response = await fetch('/api/comments/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                let data;
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    const text = await response.text();
+                    throw new Error(`Server returned: ${text}`);
+                }
+
+                if (data.success) {
+                    closeEditCommentModal();
+                    loadComments(currentPostId);
+                } else {
+                    alert('Ошибка при обновлении комментария: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Failed to update comment:', error);
+                alert('Ошибка при обновлении комментария: ' + error.message);
+            }
+        }
+
+        async function deletePost(postId) {
+            if (!confirm('Вы уверены, что хотите удалить этот пост?')) {
+                return;
+            }
+
+            const formData = {
+                postId: postId,
+                author: currentUsername
+            };
+
+            try {
+                const response = await fetch('/api/posts/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    loadPosts();
+                } else {
+                    alert('Ошибка при удалении поста: ' + (data.message || ''));
+                }
+            } catch (error) {
+                console.error('Failed to delete post:', error);
+                alert('Ошибка при удалении поста');
+            }
+        }
+
+        async function createPost(e) {
+            e.preventDefault();
+
+            if (!isAuthenticated) {
+                alert('Для создания поста необходимо авторизоваться');
+                return;
+            }
+
+            const formData = {
+                person: currentUsername,
+                heading: document.getElementById('post-heading').value,
+                mainText: document.getElementById('post-content').value,
+                date: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch('/api/posts/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                let data;
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    const text = await response.text();
+                    throw new Error(`Server returned: ${text}`);
+                }
+
+                if (data.success) {
+                    document.getElementById('post-form').reset();
+                    initializeCharCounters();
+                    loadPosts();
+                } else {
+                    alert('Ошибка при создании поста: ' + (data.message || ''));
+                }
+            } catch (error) {
+                console.error('Failed to create post:', error);
+                alert('Ошибка при создании поста: ' + error.message);
+            }
+        }
+
+        async function openCommentsModal(postId, postTitle) {
+            currentPostId = postId;
+            document.getElementById('modal-post-title').textContent = `Комментарии: ${postTitle}`;
+
+            const modal = document.getElementById('comments-modal');
+            modal.style.display = 'flex';
+
+            requestAnimationFrame(() => {
+                modal.classList.add('active');
+            });
+
+            loadComments(postId);
+        }
+
+        function closeCommentsModal() {
+            const modal = document.getElementById('comments-modal');
+            modal.classList.remove('active');
+
+            setTimeout(() => {
+                modal.style.display = 'none';
+                currentPostId = null;
+            }, 300);
+        }
+
+        async function loadComments(postId) {
+            try {
+                document.getElementById('comments-loading').style.display = 'block';
+                document.getElementById('no-comments').style.display = 'none';
+
+                const response = await fetch(`/api/comments?postId=${postId}`);
+                const data = await response.json();
+
+                document.getElementById('comments-loading').style.display = 'none';
+
+                if (data.success && data.comments && data.comments.length > 0) {
+                    renderComments(data.comments);
+                } else {
+                    document.getElementById('no-comments').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Failed to load comments:', error);
+                document.getElementById('comments-loading').style.display = 'none';
+                document.getElementById('no-comments').style.display = 'block';
+            }
+        }
+
+        function renderComments(comments) {
+            const container = document.getElementById('comments-container');
+            container.innerHTML = '';
+
+            comments.forEach((comment) => {
+                const commentElement = document.createElement('div');
+                commentElement.className = 'comment-card';
+                const commentAuthor = comment.Person || comment.person;
+                const isOwnComment = isAuthenticated && commentAuthor === currentUsername;
+                const commentId = comment.ID || comment._id || comment.id;
+                const content = comment.MainText || comment.mainText;
+
+                const cleanContent = prepareTextForAttribute(content);
+                const escapedCommentId = escapeJs(commentId.toString());
+
+                commentElement.innerHTML = `
+                <div class="comment-header">
+                    <strong>${escapeHtml(commentAuthor)}</strong>
+                    <span class="comment-date">${formatDate(comment.Date || comment.date)}</span>
+                </div>
+                <div class="comment-content">${formatDisplayText(content)}</div>
+                ${isOwnComment ? `
+                <div class="comment-actions">
+                    <button class="comment-btn-edit" data-comment-id="${commentId}" data-content="${cleanContent}">
+                        Редактировать
+                    </button>
+                    <button class="comment-btn-delete" data-comment-id="${commentId}">
+                        Удалить
+                    </button>
+                </div>
+                ` : ''}
+            `;
+                container.appendChild(commentElement);
+            });
+
+            document.querySelectorAll('.comment-btn-edit').forEach(button => {
+                button.addEventListener('click', function () {
+                    const commentId = this.getAttribute('data-comment-id');
+                    const content = this.getAttribute('data-content');
+                    openEditCommentModal(commentId, content);
+                });
+            });
+
+            document.querySelectorAll('.comment-btn-delete').forEach(button => {
+                button.addEventListener('click', function () {
+                    const commentId = this.getAttribute('data-comment-id');
+                    deleteComment(commentId);
+                });
+            });
+        }
+
+        async function deleteComment(commentId) {
+            if (!confirm('Вы уверены, что хотите удалить этот комментарий?')) {
+                return;
+            }
+
+            const formData = {
+                commentId: commentId,
+                author: currentUsername
+            };
+
+            try {
+                const response = await fetch('/api/comments/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    loadComments(currentPostId);
+                } else {
+                    alert('Ошибка при удалении комментария: ' + (data.message || ''));
+                }
+            } catch (error) {
+                console.error('Failed to delete comment:', error);
+                alert('Ошибка при удалении комментария');
+            }
+        }
+
+        async function createComment(e) {
+            e.preventDefault();
+
+            if (!isAuthenticated) {
+                alert('Для комментирования необходимо авторизоваться');
+                return;
+            }
+
+            if (!currentPostId) {
+                alert('Ошибка: пост не выбран');
+                return;
+            }
+
+            const formData = {
+                person: currentUsername,
+                mainText: document.getElementById('comment-text').value,
+                date: new Date().toISOString(),
+                postId: currentPostId
+            };
+
+            try {
+                const response = await fetch('/api/comments/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('comment-form').reset();
+                    const commentCounter = document.getElementById('comment-counter');
+                    if (commentCounter) {
+                        commentCounter.textContent = '0/1000';
+                    }
+                    loadComments(currentPostId);
+                } else {
+                    alert('Ошибка при создании комментария: ' + (data.message || ''));
+                }
+            } catch (error) {
+                console.error('Failed to create comment:', error);
+                alert('Ошибка при создании комментария');
+            }
+        }
+
+        function logout() {
+            fetch('/logout', { method: 'POST' })
+                .then(() => window.location.reload());
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Только что';
+
+            try {
+                let date = new Date(dateString);
+
+                if (isNaN(date.getTime())) {
+                    return 'Только что';
+                }
+
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+
+                if (diffMins < 60) {
+                    return `${diffMins} мин. назад`;
+                } else if (diffHours < 24) {
+                    return `${diffHours} ч. назад`;
+                } else {
+                    return date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+            } catch (error) {
+                console.error('Date formatting error:', error, dateString);
+                return 'Только что';
+            }
+        }
+    </script>
+</body>
+
+</html>
