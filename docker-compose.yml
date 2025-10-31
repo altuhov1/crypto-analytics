@@ -47,7 +47,7 @@ services:
   caddy:
     image: caddy:2-alpine
     ports:
-      - "3000:8080"
+      - "80:80"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./static:/usr/share/caddy
