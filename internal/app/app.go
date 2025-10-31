@@ -112,11 +112,11 @@ func (a *App) initStorages() {
 func (a *App) initServices() {
 	a.services = &Services{
 		notifier: services.NewNotifier(),
-		crypto:   services.NewCryptoService(false, "storage/crypto_cache.json"),
-		news:     services.NewNewsService(a.storages.news, false),
+		crypto:   services.NewCryptoService(true, "storage/crypto_cache.json"),
+		news:     services.NewNewsService(a.storages.news, true),
 		users:    services.NewUserService(a.storages.users),
-		pairs:    services.NewCryptoPairsService(a.storages.pairs, false),
-		analysis: services.NewAnalysisService(false, a.storages.anslysis),
+		pairs:    services.NewCryptoPairsService(a.storages.pairs, true),
+		analysis: services.NewAnalysisService(true, a.storages.anslysis),
 		sysStat:  services.NewSystemMonitor(),
 		posts:    services.NewPostService(a.storages.posts),
 	}
