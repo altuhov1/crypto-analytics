@@ -31,6 +31,7 @@ type Services struct {
 	pairs    *services.CryptoPairsService
 	analysis *services.AnalysisService
 	sysStat  *services.SystemMonitor
+	posts    *services.PostsService
 }
 
 type Storages struct {
@@ -117,6 +118,7 @@ func (a *App) initServices() {
 		pairs:    services.NewCryptoPairsService(a.storages.pairs, false),
 		analysis: services.NewAnalysisService(false, a.storages.anslysis),
 		sysStat:  services.NewSystemMonitor(),
+		posts:    services.NewPostService(a.storages.posts),
 	}
 }
 
@@ -131,6 +133,7 @@ func (a *App) initHTTP() {
 		a.services.news,
 		a.services.pairs,
 		a.services.analysis,
+		a.services.posts,
 	)
 	if err != nil {
 		slog.Error("Failed to create handler", "error", err)

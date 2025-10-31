@@ -6,12 +6,12 @@ import (
 
 // Post структура для постов
 type Post struct {
-	ID       bson.ObjectID `bson:"_id,omitempty"`
-	Person   string        `bson:"person"`
-	Heading  string        `bson:"heading"`
-	MainText string        `bson:"mainText"`
-	Date     string        `bson:"date"`
-	Comments []Comment     `bson:"comments,omitempty"`
+	ID         bson.ObjectID   `bson:"_id,omitempty"`
+	Person     string          `bson:"person"`
+	Heading    string          `bson:"heading"`
+	MainText   string          `bson:"mainText"`
+	Date       string          `bson:"date"`
+	CommentIDs []bson.ObjectID `bson:"commentIds,omitempty"`
 }
 
 // Comment структура для комментариев

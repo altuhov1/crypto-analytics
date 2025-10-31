@@ -28,6 +28,7 @@ type Handler struct {
 	newsStorage   *services.NewsService
 	pairs         *services.CryptoPairsService
 	amalysis      *services.AnalysisService
+	posts         *services.PostsService
 }
 
 // NewHandler создает новый экземпляр Handler
@@ -38,7 +39,8 @@ func NewHandler(storage storage.FormStorage,
 	KeyUsersGorilla string,
 	newsStor *services.NewsService,
 	pairss *services.CryptoPairsService,
-	amalys *services.AnalysisService) (*Handler, error) {
+	amalys *services.AnalysisService,
+	post *services.PostsService) (*Handler, error) {
 
 	tmpl := template.New("").Funcs(template.FuncMap{
 		"formatNumber": formatNumber,
@@ -70,6 +72,7 @@ func NewHandler(storage storage.FormStorage,
 		newsStorage: newsStor,
 		pairs:       pairss,
 		amalysis:    amalys,
+		posts:       post,
 	}, nil
 }
 

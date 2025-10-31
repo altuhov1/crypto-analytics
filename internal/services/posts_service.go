@@ -7,9 +7,7 @@ type PostsService struct {
 }
 
 func NewPostService(ps storage.PostStorage) *PostsService {
-	//TODO ...
 	return &PostsService{
 		postStorage: ps,
 	}
 }
-

@@ -1,6 +1,11 @@
 package storage
 
-import "crypto-analytics/internal/models"
+import (
+	"context"
+	"crypto-analytics/internal/models"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+)
 
 // Storage определяет контракт для работы с данными
 type FormStorage interface {
@@ -36,5 +41,15 @@ type AnalysisStorage interface {
 }
 
 type PostStorage interface {
+	CreatePost(ctx context.Context, post models.Post) (bson.ObjectID, error)
+	CreateComment(
+		ctx context.Context,
+		comment models.Comment,
+	) error
+	GetLastPosts(ctx context.Context) ([]models.Post, error)
+	GetLastCommentsByPost(ctx context.Context,
+		postID bson.ObjectID,
+	) ([]models.Comment, error)
+
 	Close()
 }

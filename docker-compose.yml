@@ -27,7 +27,7 @@ services:
     volumes:
       - mongodb_data:/data/db
       - ./docker/mongodb/init-scripts:/docker-entrypoint-initdb.d:ro
-      - ./logs/mongodb_logs:/var/log/mongodb
+      - mongodb_logs:/var/log/mongodb
     command: >
       mongod --quiet --logpath /var/log/mongodb/mongod.log --logappend
     healthcheck:
@@ -51,7 +51,7 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./static:/usr/share/caddy
-      - ./logs/caddy-logs:/var/log/caddy
+      - caddy_logs:/var/log/caddy
     depends_on:
       - app
     networks:
@@ -60,3 +60,5 @@ services:
 volumes:
   postgres_data:
   mongodb_data:
+  caddy_logs:
+  mongodb_logs:
