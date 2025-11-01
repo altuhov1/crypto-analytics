@@ -206,7 +206,7 @@ func (a *App) setupRoutes(handler *handlers.Handler) http.Handler {
 	for path, handlerFunc := range webRoutes {
 		mux.HandleFunc(path, handlerFunc)
 	}
-	if a.cfg.LaunchLoc != "prod" {
+	if a.cfg.LaunchLoc == "prod" {
 		mux.HandleFunc("/debug/pprof/", pprof.Index)
 		mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
 		mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
