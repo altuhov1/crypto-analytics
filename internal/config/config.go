@@ -11,7 +11,6 @@ import (
 type Config struct {
 	ServerPort      string `env:"PORT" envDefault:"8080"`
 	PG_DBHost       string `env:"DB_PG_HOST" envDefault:"localhost"`
-	PG_DBPort       int    `env:"DB_PG_PORT" envDefault:"5432"`
 	PG_DBUser       string `env:"DB_PG_USER" envDefault:"webuser"`
 	PG_DBPassword   string `env:"DB_PG_PASSWORD" envDefault:"1111"`
 	PG_DBName       string `env:"DB_PG_NAME" envDefault:"webdev"`
@@ -19,7 +18,6 @@ type Config struct {
 	MG_DBUser       string `env:"MG_DB_USER" envDefault:"admin"`
 	MG_DBPassword   string `env:"MG_DB_PASSWORD" envDefault:"password"`
 	MG_DBHost       string `env:"MG_DB_HOST" envDefault:"localhost"`
-	MG_DBPort       int    `env:"MG_DB_PORT" envDefault:"27017"`
 	MG_DBName       string `env:"MG_DB_NAME" envDefault:"mydatabase"`
 	MG_Auth         string `env:"MG_DB_AUTH_SOURCE" envDefault:"admin"`
 	KeyUsersGorilla string `env:"KEY_USERS_GORILLA" envDefault:"my-super-secret-key-12345"`

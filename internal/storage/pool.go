@@ -13,8 +13,8 @@ import (
 
 func NewPoolPg(cfg *config.PGXConfig) (*pgxpool.Pool, error) {
 	// Формируем строку подключения
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
-		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DBName, cfg.SSLMode)
+	connStr := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s",
+		cfg.User, cfg.Password, cfg.Host, cfg.DBName, cfg.SSLMode)
 	// Создаем пул соединений
 	config, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
@@ -44,11 +44,10 @@ func NewPoolPg(cfg *config.PGXConfig) (*pgxpool.Pool, error) {
 }
 
 func NewMongoClient(config *config.MGConfig) (*mongo.Client, error) {
-	uri := fmt.Sprintf("mongodb://%s:%s@%s:%d/%s?authSource=%s",
+	uri := fmt.Sprintf("mongodb://%s:%s@%s/%s?authSource=%s",
 		config.DBUser,
 		config.DBPassword,
 		config.DBHost,
-		config.DBPort,
 		config.DBName,
 		config.DBAuth)
 	clientOptions := options.Client().ApplyURI(uri).SetServerSelectionTimeout(10 * time.Second)

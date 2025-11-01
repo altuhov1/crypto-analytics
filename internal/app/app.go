@@ -60,7 +60,6 @@ func NewApp(cfg *config.Config) *App {
 func (a *App) initStorages() {
 	dbPGConfig := &config.PGXConfig{
 		Host:     a.cfg.PG_DBHost,
-		Port:     a.cfg.PG_DBPort,
 		User:     a.cfg.PG_DBUser,
 		Password: a.cfg.PG_DBPassword,
 		DBName:   a.cfg.PG_DBName,
@@ -71,7 +70,6 @@ func (a *App) initStorages() {
 		DBUser:     a.cfg.MG_DBUser,
 		DBPassword: a.cfg.MG_DBPassword,
 		DBHost:     a.cfg.MG_DBHost,
-		DBPort:     a.cfg.MG_DBPort,
 		DBName:     a.cfg.MG_DBName,
 		DBAuth:     a.cfg.MG_Auth,
 	}
