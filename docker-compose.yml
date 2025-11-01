@@ -13,6 +13,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    networks:
+      - internal
 
   mongodb:
     image: mongo:7
@@ -32,7 +34,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
+    networks:
+      - internal
   app:
+    networks:
+      - internal
     build: .
     depends_on:
       postgres:
@@ -51,7 +57,13 @@ services:
     depends_on:
       - app
     networks:
-      - default
+      - internal
+      - public
+
+networks:
+  internal:
+    internal: true  
+  public:
 
 volumes:
   postgres_data:

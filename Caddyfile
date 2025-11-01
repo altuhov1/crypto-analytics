@@ -2,7 +2,7 @@
    
 }
 
-:80 {
+:80 { #80.249.147.219:
     encode zstd gzip
     log {
         output file /var/log/caddy/access.log {
