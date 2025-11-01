@@ -110,13 +110,19 @@ func (a *App) initStorages() {
 }
 
 func (a *App) initServices() {
+	IsItProd := false
+	if a.cfg.LaunchLoc == "prod" {
+		IsItProd = true
+	} else {
+		IsItProd = false
+	}
 	a.services = &Services{
 		notifier: services.NewNotifier(),
-		crypto:   services.NewCryptoService(true, "storage/crypto_cache.json"),
-		news:     services.NewNewsService(a.storages.news, true),
+		crypto:   services.NewCryptoService(IsItProd, "storage/crypto_cache.json"),
+		news:     services.NewNewsService(a.storages.news, IsItProd),
 		users:    services.NewUserService(a.storages.users),
-		pairs:    services.NewCryptoPairsService(a.storages.pairs, true),
-		analysis: services.NewAnalysisService(true, a.storages.anslysis),
+		pairs:    services.NewCryptoPairsService(a.storages.pairs, IsItProd),
+		analysis: services.NewAnalysisService(IsItProd, a.storages.anslysis),
 		sysStat:  services.NewSystemMonitor(),
 		posts:    services.NewPostService(a.storages.posts),
 	}

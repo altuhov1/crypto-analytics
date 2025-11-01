@@ -426,10 +426,69 @@
     text-indent: 0;
 }
 
-/* Если нужно сохранить оригинальное форматирование */
-.post-content br,
-.comment-content br {
-    display: block;
-    content: "";
-    margin-bottom: 0.5em;
+
+.btn-edit,
+.btn-delete {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    font-weight: 500;
+    background: var(--card-bg) !important;
+    color: var(--text-secondary) !important;
+}
+
+.btn-edit:hover {
+    background: var(--card-bg);
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(240, 185, 11, 0.2);
+}
+
+.btn-delete:hover {
+    background: var(--card-bg);
+    color: #f6465d;
+    border-color: #f6465d;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(246, 70, 93, 0.2);
+}
+
+.comment-btn-edit,
+.comment-btn-delete {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    background: var(--secondary-bg);
+    color: var(--text-secondary);
+}
+
+.comment-btn-edit:hover {
+    background: var(--secondary-bg);
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.comment-btn-delete:hover {
+    background: var(--secondary-bg);
+    color: #f6465d;
+    border-color: #f6465d;
+}
+
+@media (max-width: 768px) {
+
+    .btn-edit,
+    .btn-delete {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    .post-user-actions {
+        gap: 8px;
+    }
 }
