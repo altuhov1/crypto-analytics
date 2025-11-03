@@ -19,7 +19,7 @@ type CryptoService struct {
 	cacheMutex sync.RWMutex
 	cacheTime  time.Time
 	cacheFile  string
-	useAPI     bool // Режим работы: true - API, false - файл
+	useAPI     bool
 }
 
 func NewCryptoService(useAPI bool, cacheFile string) *CryptoService {
@@ -31,11 +31,11 @@ func NewCryptoService(useAPI bool, cacheFile string) *CryptoService {
 	}
 
 	if useAPI {
-		// Режим API: загружаем и кэшируем
+
 		svc.refreshCache()
 		go svc.startCacheUpdater()
 	} else {
-		// Режим файла: загружаем из файла
+
 		svc.loadFromFile()
 	}
 
@@ -80,7 +80,6 @@ func (s *CryptoService) saveToFile() error {
 	return nil
 }
 
-// refreshCache обновляет кэш (с сохранением в файл если нужно)
 func (s *CryptoService) refreshCache() {
 	coins, err := s.getTopCryptosFromAPI(250)
 	if err != nil {
@@ -93,7 +92,6 @@ func (s *CryptoService) refreshCache() {
 	s.cacheTime = time.Now()
 	s.cacheMutex.Unlock()
 
-	// Сохраняем в файл для будущего использования
 	if err := s.saveToFile(); err != nil {
 		slog.Error("Ошибка сохранения в файл:", "error", err)
 	}
@@ -101,7 +99,7 @@ func (s *CryptoService) refreshCache() {
 }
 
 func (s *CryptoService) startCacheUpdater() {
-	ticker := time.NewTicker(1 * time.Hour) // Обновление каждый час
+	ticker := time.NewTicker(1 * time.Hour)
 
 	for range ticker.C {
 		s.refreshCache()
@@ -137,7 +135,6 @@ func (s *CryptoService) GetTopCryptos(limit int) ([]models.Coin, error) {
 		return nil, fmt.Errorf("кэш пустой")
 	}
 
-	// Возвращаем запрошенное количество монет
 	if limit > len(s.cache) {
 		limit = len(s.cache)
 	}

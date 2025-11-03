@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/pprof"
@@ -36,12 +35,13 @@ type Services struct {
 }
 
 type Storages struct {
-	contacts storage.FormStorage
-	users    storage.UserStorage
-	news     storage.NewsStorage
-	pairs    storage.CacheStorage
-	anslysis storage.AnalysisStorage
-	posts    storage.PostStorage
+	contacts     storage.FormStorage
+	users        storage.UserStorage
+	news         storage.NewsStorage
+	pairs        storage.CacheStorage
+	anslysis     storage.AnalysisStorage
+	analysisTemp storage.AnalysisTempStorage
+	posts        storage.PostStorage
 }
 
 func NewApp(cfg *config.Config) *App {
@@ -64,16 +64,23 @@ func (a *App) initStorages() {
 		Password: a.cfg.PG_DBPassword,
 		DBName:   a.cfg.PG_DBName,
 		SSLMode:  a.cfg.PG_DBSSLMode,
+		Port:     a.cfg.PG_PORT,
 	}
-	fmt.Println(dbPGConfig)
 	dbMongoConfig := &config.MGConfig{
 		DBUser:     a.cfg.MG_DBUser,
 		DBPassword: a.cfg.MG_DBPassword,
 		DBHost:     a.cfg.MG_DBHost,
 		DBName:     a.cfg.MG_DBName,
 		DBAuth:     a.cfg.MG_Auth,
+		Port:       a.cfg.MG_Port,
 	}
-	fmt.Println(dbMongoConfig)
+	redisCfg := &config.RedisConfig{
+		Host:     a.cfg.RedisHost,
+		Password: a.cfg.RedisPassword,
+		DB:       a.cfg.RedisDB,
+		PoolSize: a.cfg.RedisPoolSize,
+		Port:     a.cfg.RedisPort,
+	}
 	poolPG, err := storage.NewPoolPg(dbPGConfig)
 	if err != nil {
 		slog.Error("Failed to initialize PG (pool)", "error", err)
@@ -85,12 +92,17 @@ func (a *App) initStorages() {
 		slog.Error("Failed to initialize PG (pool)", "error", err)
 		os.Exit(1)
 	}
-
+	redisClient, err := storage.NewRedisClient(redisCfg)
+	if err != nil {
+		slog.Error("Failed to initialize PG (pool)", "error", err)
+		os.Exit(1)
+	}
 	contactsStorage := storage.NewContactPostgresStorage(poolPG)
 
 	usersStorage := storage.NewUserPostgresStorage(poolPG)
 
 	postStorage := storage.NewPostsMongoStorage(clientMG)
+	reddisAnalysis := storage.NewAnalysisTempStorage(redisClient)
 
 	newsStorage := storage.NewNewsFileStorage("storage/news_cache.json")
 
@@ -99,12 +111,13 @@ func (a *App) initStorages() {
 	analysisStorage := storage.NewAnalysisFileStorage("storage/analysis_cache.json")
 
 	a.storages = &Storages{
-		contacts: contactsStorage,
-		users:    usersStorage,
-		news:     newsStorage,
-		pairs:    pairsStorage,
-		anslysis: analysisStorage,
-		posts:    postStorage,
+		contacts:     contactsStorage,
+		users:        usersStorage,
+		news:         newsStorage,
+		pairs:        pairsStorage,
+		anslysis:     analysisStorage,
+		analysisTemp: reddisAnalysis,
+		posts:        postStorage,
 	}
 }
 
@@ -121,7 +134,7 @@ func (a *App) initServices() {
 		news:     services.NewNewsService(a.storages.news, IsItProd),
 		users:    services.NewUserService(a.storages.users),
 		pairs:    services.NewCryptoPairsService(a.storages.pairs, IsItProd),
-		analysis: services.NewAnalysisService(IsItProd, a.storages.anslysis),
+		analysis: services.NewAnalysisService(IsItProd, a.storages.anslysis, a.storages.analysisTemp),
 		sysStat:  services.NewSystemMonitor(),
 		posts:    services.NewPostService(a.storages.posts),
 	}
@@ -173,7 +186,6 @@ func (a *App) setupRoutes(handler *handlers.Handler) http.Handler {
 		"/api/all-pairs":          handler.GetAllPairsHandler,
 		"/api/select-pair":        handler.SelectPairHandler,
 		"/api/pair":               handler.GetPairInfo,
-		"/api/pairs":              handler.GetAllPairs,
 		"/api/available":          handler.GetAvailablePairs,
 		"/api/posts/create":       handler.CreatePostHandler,
 		"/api/comments/create":    handler.CreateCommentHandler,

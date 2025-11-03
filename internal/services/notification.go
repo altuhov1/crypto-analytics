@@ -7,17 +7,15 @@ import (
 	"crypto-analytics/internal/models"
 )
 
-// Notifier сервис для отправки уведомлений
 type NotifierStruct struct{}
 
-// NewNotifier создает новый Notifier
 func NewNotifier() Notifier {
 	return &NotifierStruct{}
 }
 
-// NotifyAdmContForm уведомляет админа о новом сообщении
+
 func (n *NotifierStruct) NotifyAdmContForm(contact *models.ContactForm) {
-	time.Sleep(100 * time.Millisecond) // Имитация задержки
+	time.Sleep(100 * time.Millisecond)
 	slog.Info("<-> УВЕДОМЛЕНИЕ ДЛЯ АДМИНА <->",
 		"user_name", contact.Name,
 		"user_email", contact.Email,
@@ -26,7 +24,7 @@ func (n *NotifierStruct) NotifyAdmContForm(contact *models.ContactForm) {
 }
 
 func (n *NotifierStruct) NotifyAdmNewUserForm(contact *models.User) {
-	time.Sleep(100 * time.Millisecond) // Имитация задержки
+	time.Sleep(100 * time.Millisecond) 
 	slog.Info("<-> УВЕДОМЛЕНИЕ ДЛЯ АДМИНА <->",
 		"username", contact.Username,
 		"email", contact.Email,

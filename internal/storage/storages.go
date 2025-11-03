@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto-analytics/internal/models"
 
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -66,4 +67,14 @@ type PostStorage interface {
 		content string,
 	) error
 	Close()
+}
+
+type AnalysisTempStorage interface {
+	SaveAnalysisData(data models.AnalysisData) error
+	SavePairs(pairs models.PairsCrypto) error
+	GetAnalysisData(pair,
+		timeframe string,
+	) (*models.AnalysisData, error)
+	GetStats() string
+	Close(client *redis.Client)
 }

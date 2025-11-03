@@ -21,23 +21,19 @@ func NewNewsService(store storage.NewsStorage, fetchEnabled bool) *NewsService {
 		feeds: map[string]string{
 			"https://cointelegraph.com/rss":                   "cointelegraph",
 			"https://www.coindesk.com/arc/outboundfeeds/rss/": "coindesk",
-			"https://www.theblock.co/feed/rss":                "theblock",
 		},
 		store:        store,
 		fetchEnabled: fetchEnabled,
 	}
 
-	// Запускаем фоновое обновление новостей
 	go service.startBackgroundUpdates()
 
 	return service
 }
 
 func (n *NewsService) startBackgroundUpdates() {
-	// Сразу обновляем при старте
 	n.updateNews()
 
-	// Затем обновляем каждые 3 часа
 	ticker := time.NewTicker(3 * time.Hour)
 	defer ticker.Stop()
 
@@ -46,7 +42,6 @@ func (n *NewsService) startBackgroundUpdates() {
 	}
 }
 
-// updateNews обновляет новости и сохраняет в хранилище
 func (n *NewsService) updateNews() {
 	if !n.fetchEnabled {
 		return

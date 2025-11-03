@@ -62,7 +62,6 @@ func (s *NewsFileStorage) saveNews(news []models.NewsItem) error {
 	return nil
 }
 
-// generateID генерирует уникальный ID на основе GUID, Title и PublishedAt
 func (s *NewsFileStorage) generateID(item models.NewsItem) string {
 	if item.GUID != "" {
 		return item.GUID
@@ -82,13 +81,11 @@ func (s *NewsFileStorage) AddNews(items []models.NewsItem) error {
 		return err
 	}
 
-	// Создаем мапу для быстрого поиска существующих новостей
 	existingMap := make(map[string]bool)
 	for _, item := range existingNews {
 		existingMap[s.generateID(item)] = true
 	}
 
-	// Добавляем только новые новости
 	for _, item := range items {
 		id := s.generateID(item)
 		if !existingMap[id] {
@@ -105,6 +102,6 @@ func (s *NewsFileStorage) GetAllNews() ([]models.NewsItem, error) {
 }
 
 func (s *NewsFileStorage) UpdateNews(items []models.NewsItem) error {
-	// Для файлового хранилища обновление = добавление новых записей
+
 	return s.AddNews(items)
 }

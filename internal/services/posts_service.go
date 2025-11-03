@@ -24,15 +24,12 @@ func NewPostService(ps storage.PostStorage) *PostsService {
 	}
 }
 
-// CreatePost создает новый пост с валидацией
 func (s *PostsService) CreatePost(ctx context.Context, post models.Post) (bson.ObjectID, error) {
 	if err := s.validatePost(post); err != nil {
 		return bson.ObjectID{}, err
 	}
 	return s.postStorage.CreatePost(ctx, post)
 }
-
-// CreateComment создает новый комментарий к посту с валидацией
 func (s *PostsService) CreateComment(ctx context.Context, comment models.Comment) error {
 	if err := s.validateComment(comment); err != nil {
 		return err
@@ -40,17 +37,14 @@ func (s *PostsService) CreateComment(ctx context.Context, comment models.Comment
 	return s.postStorage.CreateComment(ctx, comment)
 }
 
-// GetLastPosts возвращает последние посты
 func (s *PostsService) GetLastPosts(ctx context.Context) ([]models.Post, error) {
 	return s.postStorage.GetLastPosts(ctx)
 }
 
-// GetLastCommentsByPost возвращает последние комментарии для указанного поста
 func (s *PostsService) GetLastCommentsByPost(ctx context.Context, postID bson.ObjectID) ([]models.Comment, error) {
 	return s.postStorage.GetLastCommentsByPost(ctx, postID)
 }
 
-// validatePost валидирует структуру поста
 func (s *PostsService) validatePost(post models.Post) error {
 	if post.Person == "" {
 		return ErrEmptyPerson

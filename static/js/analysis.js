@@ -5,12 +5,15 @@ let originalData = null;
 let visibleStart = 0;
 let visibleEnd = 0;
 
-// Переменные для плавной анимации перекрестья
 let targetX = 0;
 let targetY = 0;
 let currentX = 0;
 let currentY = 0;
-const animationSpeed = 0.3; // скорость анимации (0-1)
+const animationSpeed = 0.3;
+
+let chartEventHandlers = [];
+let isDragging = false;
+let isPinching = false;
 
 const pairSelect = document.getElementById('pairSelect');
 const timeframeSelect = document.getElementById('timeframeSelect');
@@ -20,23 +23,19 @@ const indicatorsContainer = document.getElementById('indicatorsContainer');
 const errorContainer = document.getElementById('errorContainer');
 const lastUpdateEl = document.getElementById('lastUpdate');
 
-// Определяем тип устройства и начальное количество свечей
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const INITIAL_CANDLES = isMobile ? 200 : 500;
 
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     loadData();
-    animateCrosshair(); // Запускаем анимацию перекрестья
+    animateCrosshair();
 });
 
-// Функция анимации перекрестья
 function animateCrosshair() {
-    // Плавная интерполяция позиции
     currentX += (targetX - currentX) * animationSpeed;
     currentY += (targetY - currentY) * animationSpeed;
 
-    // Обновляем график если позиция изменилась
     if (priceChart && (Math.abs(targetX - currentX) > 0.1 || Math.abs(targetY - currentY) > 0.1)) {
         priceChart.update('none');
     }
@@ -57,14 +56,16 @@ function setupEventListeners() {
         });
     });
 
-    document.getElementById('btnZoomReset').addEventListener('click', () => {
-        if (originalData) {
-            const totalPoints = originalData.labels.length;
-            visibleStart = Math.max(0, totalPoints - INITIAL_CANDLES);
-            visibleEnd = totalPoints - 1;
-            updateVisibleRange(priceChart, originalData, visibleStart, visibleEnd);
-        }
-    });
+    document.getElementById('btnZoomReset').addEventListener('click', resetZoom);
+}
+
+function resetZoom() {
+    if (originalData && priceChart) {
+        const totalPoints = originalData.labels.length;
+        visibleStart = Math.max(0, totalPoints - INITIAL_CANDLES);
+        visibleEnd = totalPoints - 1;
+        updateVisibleRange(priceChart, originalData, visibleStart, visibleEnd);
+    }
 }
 
 async function loadData() {
@@ -102,7 +103,10 @@ function updatePriceChart(data) {
 
     if (priceChart) {
         priceChart.destroy();
+        priceChart = null;
     }
+
+    removeAllEventHandlers();
 
     const candles = data.candles || [];
     if (candles.length === 0) {
@@ -166,7 +170,7 @@ function updatePriceChart(data) {
         }];
     }
 
-    // Сохраняем оригинальные данные для управления видимой областью
+
     originalData = {
         labels: labels,
         datasets: datasets.map(dataset => ({
@@ -175,7 +179,7 @@ function updatePriceChart(data) {
         }))
     };
 
-    // Начальная видимая область - показываем все данные
+
     const totalPoints = labels.length;
     visibleStart = Math.max(0, totalPoints - INITIAL_CANDLES);
     visibleEnd = totalPoints - 1;
@@ -364,14 +368,32 @@ function updatePriceChart(data) {
     currentX = 0;
     currentY = 0;
 
+    // Сбрасываем состояния перетаскивания
+    isDragging = false;
+    isPinching = false;
+
     // Добавляем функцию перетаскивания
     addDragToPan(canvas, priceChart, originalData);
 }
 
-// Функция для добавления перетаскивания
+// Функция для удаления всех обработчиков событий
+function removeAllEventHandlers() {
+    chartEventHandlers.forEach(handler => {
+        if (handler.element && handler.type && handler.listener) {
+            handler.element.removeEventListener(handler.type, handler.listener);
+        }
+    });
+    chartEventHandlers = [];
+}
+
+// Функция для добавления обработчика с отслеживанием
+function addEventHandler(element, type, listener) {
+    element.addEventListener(type, listener);
+    chartEventHandlers.push({ element, type, listener });
+}
+
 // Функция для добавления перетаскивания
 function addDragToPan(canvas, chart, data) {
-    let isDragging = false;
     let startX = 0;
     let startVisibleStart = visibleStart;
     let startVisibleEnd = visibleEnd;
@@ -379,15 +401,14 @@ function addDragToPan(canvas, chart, data) {
     // Для мультитач зума
     let initialPinchDistance = 0;
     let initialVisibleRange = 0;
-    let isPinching = false;
 
     // Улучшенное определение устройств
     const isTouchDevice = 'ontouchstart' in window;
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     // Определяем тачпад по комбинации признаков
     const isProbablyTrackpad = isTouchDevice &&
-        !isMobile &&
+        !isMobileDevice &&
         (navigator.platform.match(/Mac/) ||
             /Win|Linux/.test(navigator.platform));
 
@@ -396,43 +417,30 @@ function addDragToPan(canvas, chart, data) {
     // Временная переменная для точного определения тачпада по событиям
     let isTrackpadConfirmed = isProbablyTrackpad;
 
-    // === НАСТРОЙКИ СКОРОСТИ === зум
+    // === НАСТРОЙКИ СКОРОСТИ ===
     const touchpadSensitivity = 0.9;
     const mouseZoomSpeed = 0.8;
     const touchpadZoomSpeed = 0.95;
 
     // === ОБРАБОТЧИКИ МЫШИ ===
-    canvas.addEventListener('mousedown', handleMouseDown);
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mouseup', handleMouseUp);
-    canvas.addEventListener('mouseleave', handleMouseUp);
-    canvas.addEventListener('wheel', handleWheel);
-
-    // === ОБРАБОТЧИКИ ТАЧ-СОБЫТИЙ ===
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-    canvas.addEventListener('touchend', handleTouchEnd);
-    canvas.addEventListener('touchcancel', handleTouchEnd);
-
-    // === ОСНОВНЫЕ ФУНКЦИИ ===
-    function handleMouseDown(e) {
+    const mouseDownHandler = (e) => {
         if (isTrackpadConfirmed) return;
         startDragging(e.clientX);
         e.preventDefault();
-    }
+    };
 
-    function handleMouseMove(e) {
+    const mouseMoveHandler = (e) => {
         if (!isDragging || isTrackpadConfirmed) return;
         const deltaX = e.clientX - startX;
         updatePanPosition(deltaX);
-    }
+    };
 
-    function handleMouseUp() {
+    const mouseUpHandler = () => {
         if (isTrackpadConfirmed) return;
         stopDragging();
-    }
+    };
 
-    function handleWheel(e) {
+    const wheelHandler = (e) => {
         e.preventDefault();
 
         if (!isTrackpadConfirmed && (e.deltaX !== 0 || Math.abs(e.deltaY % 1) > 0.001)) {
@@ -449,8 +457,6 @@ function addDragToPan(canvas, chart, data) {
                 const pixelsPerPoint = canvas.offsetWidth / totalVisiblePoints;
                 const movePoints = Math.round(e.deltaX / pixelsPerPoint * touchpadSensitivity);
 
-                // Два пальца влево (deltaX отрицательный) = график двигается ВПРАВО
-                // Два пальца вправо (deltaX положительный) = график двигается ВЛЕВО
                 let newStart = Math.max(0, visibleStart + movePoints);
                 let newEnd = Math.min(totalDataPoints - 1, newStart + totalVisiblePoints);
 
@@ -479,9 +485,10 @@ function addDragToPan(canvas, chart, data) {
             const zoomFactor = e.deltaY > 0 ? mouseZoomSpeed : (1 / mouseZoomSpeed);
             handleZoom(zoomFactor, e.clientX);
         }
-    }
+    };
 
-    function handleTouchStart(e) {
+    // === ОБРАБОТЧИКИ ТАЧ-СОБЫТИЙ ===
+    const touchStartHandler = (e) => {
         if (e.touches.length === 1) {
             startDragging(e.touches[0].clientX);
             e.preventDefault();
@@ -489,9 +496,9 @@ function addDragToPan(canvas, chart, data) {
             startPinching(e.touches[0], e.touches[1]);
             e.preventDefault();
         }
-    }
+    };
 
-    function handleTouchMove(e) {
+    const touchMoveHandler = (e) => {
         if (e.touches.length === 1 && isDragging) {
             const deltaX = e.touches[0].clientX - startX;
             updatePanPosition(deltaX);
@@ -500,9 +507,9 @@ function addDragToPan(canvas, chart, data) {
             handlePinchZoom(e.touches[0], e.touches[1]);
             e.preventDefault();
         }
-    }
+    };
 
-    function handleTouchEnd(e) {
+    const touchEndHandler = (e) => {
         if (e.touches.length === 0) {
             stopDragging();
             resetPinch();
@@ -510,8 +517,21 @@ function addDragToPan(canvas, chart, data) {
             stopDragging();
             startDragging(e.touches[0].clientX);
         }
-    }
+    };
 
+    // Добавляем обработчики с отслеживанием
+    addEventHandler(canvas, 'mousedown', mouseDownHandler);
+    addEventHandler(canvas, 'mousemove', mouseMoveHandler);
+    addEventHandler(canvas, 'mouseup', mouseUpHandler);
+    addEventHandler(canvas, 'mouseleave', mouseUpHandler);
+    addEventHandler(canvas, 'wheel', wheelHandler);
+
+    addEventHandler(canvas, 'touchstart', touchStartHandler);
+    addEventHandler(canvas, 'touchmove', touchMoveHandler);
+    addEventHandler(canvas, 'touchend', touchEndHandler);
+    addEventHandler(canvas, 'touchcancel', touchEndHandler);
+
+    // === ОСНОВНЫЕ ФУНКЦИИ ===
     function startDragging(clientX) {
         if (isTrackpadConfirmed) return;
         isDragging = true;
@@ -615,9 +635,10 @@ function addDragToPan(canvas, chart, data) {
     }
 }
 
-
 // Функция для обновления видимой области графика
 function updateVisibleRange(chart, data, start, end) {
+    if (!chart || !data) return;
+
     chart.data.labels = data.labels.slice(start, end + 1);
 
     chart.data.datasets.forEach((dataset, index) => {
@@ -627,11 +648,11 @@ function updateVisibleRange(chart, data, start, end) {
     chart.update('none');
 }
 
+// Остальные функции (updateIndicators, showLoading, showError, hideError, updateLastUpdate) остаются без изменений
 function updateIndicators(data) {
     const ind = data.indicators || {};
     const container = indicatorsContainer;
 
-    // Получаем текущую цену из последней свечи
     const currentPrice = data.candles && data.candles.length > 0
         ? data.candles[data.candles.length - 1].close
         : 0;
@@ -669,98 +690,99 @@ function updateIndicators(data) {
     const macdCls = (ind.macd > ind.signal) ? 'price-positive' : 'price-negative';
 
     container.innerHTML = `
-                <div class="indicators-grid">
-                    <div class="indicator-item">
-                        <div class="indicator-content">
-                            <div class="indicator-header">
-                                <div class="indicator-name">💰 Текущая цена</div>
-                            </div>
-                            <div class="indicator-value">
-                                $${currentPrice.toFixed(2)}
-                            </div>
-                            <div class="indicator-details">
-                                Последнее значение закрытия
-                            </div>
-                            <div class="signal-container">
-                                <div class="indicator-signal signal-neutral">
-                                    ⚪ Актуально
-                                </div>
-                            </div>
-                        </div>
+        <div class="indicators-grid">
+            <!-- Индикаторы остаются без изменений -->
+            <div class="indicator-item">
+                <div class="indicator-content">
+                    <div class="indicator-header">
+                        <div class="indicator-name">💰 Текущая цена</div>
                     </div>
-
-                    <div class="indicator-item">
-                        <div class="indicator-content">
-                            <div class="indicator-header">
-                                <div class="indicator-name">📊 Скользящие средние</div>
-                            </div>
-                            <div class="indicator-value">
-                                <div class="sma-values">SMA 20: $${ind.sma20?.toFixed(2) || 'N/A'}</div>
-                                <div class="sma-values">SMA 50: $${ind.sma50?.toFixed(2) || 'N/A'}</div>
-                            </div>
-                            <div class="signal-container">
-                                <div class="indicator-signal ${smaSignal().cls}">
-                                    ${smaSignal().icon} ${smaSignal().text}
-                                </div>
-                            </div>
-                        </div>
+                    <div class="indicator-value">
+                        $${currentPrice.toFixed(2)}
                     </div>
-
-                    <div class="indicator-item">
-                        <div class="indicator-content">
-                            <div class="indicator-header">
-                                <div class="indicator-name">📈 EMA</div>
-                            </div>
-                            <div class="indicator-value">
-                                <div class="sma-values">EMA 12: $${ind.ema12?.toFixed(2) || 'N/A'}</div>
-                                <div class="sma-values">EMA 26: $${ind.ema26?.toFixed(2) || 'N/A'}</div>
-                            </div>
-                            <div class="signal-container">
-                                <div class="indicator-signal ${emaSignal().cls}">
-                                    ${emaSignal().icon} ${emaSignal().text}
-                                </div>
-                            </div>
-                        </div>
+                    <div class="indicator-details">
+                        Последнее значение закрытия
                     </div>
-
-                    <div class="indicator-item">
-                        <div class="indicator-content">
-                            <div class="indicator-header">
-                                <div class="indicator-name">⚡ RSI (14)</div>
-                            </div>
-                            <div class="indicator-value ${rsiCls}">
-                                ${(ind.rsi !== undefined && ind.rsi !== 0) ? ind.rsi.toFixed(2) : 'N/A'}
-                            </div>
-                            <div class="indicator-details">
-                                Моментум индикатор
-                            </div>
-                            <div class="signal-container">
-                                <div class="indicator-signal ${rsiSignal().cls}">
-                                    ${rsiSignal().icon} ${rsiSignal().text}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="indicator-item">
-                        <div class="indicator-content">
-                            <div class="indicator-header">
-                                <div class="indicator-name">📊 MACD</div>
-                            </div>
-                            <div class="indicator-value">
-                                <div class="sma-values">MACD: ${ind.macd?.toFixed(4) || 'N/A'}</div>
-                                <div class="sma-values">Signal: ${ind.signal?.toFixed(4) || 'N/A'}</div>
-                                <div class="sma-values">Histogram: ${ind.histogram?.toFixed(4) || 'N/A'}</div>
-                            </div>
-                            <div class="signal-container">
-                                <div class="indicator-signal ${macdSignal().cls}">
-                                    ${macdSignal().icon} ${macdSignal().text}
-                                </div>
-                            </div>
+                    <div class="signal-container">
+                        <div class="indicator-signal signal-neutral">
+                            ⚪ Актуально
                         </div>
                     </div>
                 </div>
-            `;
+            </div>
+
+            <div class="indicator-item">
+                <div class="indicator-content">
+                    <div class="indicator-header">
+                        <div class="indicator-name">📊 Скользящие средние</div>
+                    </div>
+                    <div class="indicator-value">
+                        <div class="sma-values">SMA 20: $${ind.sma20?.toFixed(2) || 'N/A'}</div>
+                        <div class="sma-values">SMA 50: $${ind.sma50?.toFixed(2) || 'N/A'}</div>
+                    </div>
+                    <div class="signal-container">
+                        <div class="indicator-signal ${smaSignal().cls}">
+                            ${smaSignal().icon} ${smaSignal().text}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="indicator-item">
+                <div class="indicator-content">
+                    <div class="indicator-header">
+                        <div class="indicator-name">📈 EMA</div>
+                    </div>
+                    <div class="indicator-value">
+                        <div class="sma-values">EMA 12: $${ind.ema12?.toFixed(2) || 'N/A'}</div>
+                        <div class="sma-values">EMA 26: $${ind.ema26?.toFixed(2) || 'N/A'}</div>
+                    </div>
+                    <div class="signal-container">
+                        <div class="indicator-signal ${emaSignal().cls}">
+                            ${emaSignal().icon} ${emaSignal().text}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="indicator-item">
+                <div class="indicator-content">
+                    <div class="indicator-header">
+                        <div class="indicator-name">⚡ RSI (14)</div>
+                    </div>
+                    <div class="indicator-value ${rsiCls}">
+                        ${(ind.rsi !== undefined && ind.rsi !== 0) ? ind.rsi.toFixed(2) : 'N/A'}
+                    </div>
+                    <div class="indicator-details">
+                        Моментум индикатор
+                    </div>
+                    <div class="signal-container">
+                        <div class="indicator-signal ${rsiSignal().cls}">
+                            ${rsiSignal().icon} ${rsiSignal().text}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="indicator-item">
+                <div class="indicator-content">
+                    <div class="indicator-header">
+                        <div class="indicator-name">📊 MACD</div>
+                    </div>
+                    <div class="indicator-value">
+                        <div class="sma-values">MACD: ${ind.macd?.toFixed(4) || 'N/A'}</div>
+                        <div class="sma-values">Signal: ${ind.signal?.toFixed(4) || 'N/A'}</div>
+                        <div class="sma-values">Histogram: ${ind.histogram?.toFixed(4) || 'N/A'}</div>
+                    </div>
+                    <div class="signal-container">
+                        <div class="indicator-signal ${macdSignal().cls}">
+                            ${macdSignal().icon} ${macdSignal().text}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 function showLoading() {

@@ -74,10 +74,8 @@ func (s *CryptoPairsService) downloadAndCachePairs() error {
 		return fmt.Errorf("failed to parse JSON: %v", err)
 	}
 
-	// Фильтруем только USDT пары
 	s.pairs = s.filterUSDTOairs(apiResponse)
 
-	// Сохраняем в кэш
 	data, err := json.Marshal(s.pairs)
 	if err != nil {
 		return err
@@ -86,7 +84,6 @@ func (s *CryptoPairsService) downloadAndCachePairs() error {
 
 }
 
-// filterUSDTOairs оставляет только пары, заканчивающиеся на USDT
 func (s *CryptoPairsService) filterUSDTOairs(response PairsResponse) []string {
 	var usdtPairs []string
 

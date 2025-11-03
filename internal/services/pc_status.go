@@ -59,7 +59,6 @@ func (sm *SystemMonitor) calculateRealCPUUsage() float64 {
 	return sm.lastCPUPercent
 }
 
-// Остальные функции без изменений
 type GoroutineStats struct {
 	TotalGoroutines int
 	NumCPU          int

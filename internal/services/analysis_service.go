@@ -10,40 +10,42 @@ import (
 )
 
 type AnalysisService struct {
-	Pairs      models.PairsCrypto
 	store      storage.AnalysisStorage
+	tempStore  storage.AnalysisTempStorage
 	binanceAPI *BinanceAPI
 	goToApi    bool
 	mu         sync.RWMutex
 }
 
-func NewAnalysisService(goToApi bool, store storage.AnalysisStorage) *AnalysisService {
+func NewAnalysisService(goToApi bool, store storage.AnalysisStorage, tempS storage.AnalysisTempStorage) *AnalysisService {
 	service := &AnalysisService{
 		goToApi:    goToApi,
 		store:      store,
 		binanceAPI: NewBinanceAPI(),
 		mu:         sync.RWMutex{},
-		Pairs:      make(models.PairsCrypto, 0),
+		tempStore:  tempS,
 	}
 
-	// Первоначальная загрузка данных
+
 	if goToApi {
 		slog.Info("Загрузка данных из API Binance")
-		service.Pairs = service.uploadApi()
+		service.uploadApi()
 		go service.asyncUpdatePairs()
 	} else {
-		service.Pairs = service.uploadFromStorage()
+		err := service.tempStore.SavePairs(service.uploadFromStorage())
+		if err != nil {
+			slog.Error("err in uploadApi()", "err", err)
+		}
 	}
 
 	slog.Info("Сервис анализа успешно инициализирован",
 		"goToApi", goToApi,
-		"loadedPairs", len(service.Pairs))
+		"loadedPairs", service.tempStore.GetStats())
 
 	return service
 }
 
-// uploadApi загружает данные из API Binance
-func (a *AnalysisService) uploadApi() models.PairsCrypto {
+func (a *AnalysisService) uploadApi() {
 	pairs := []string{"BTCUSDT", "ETHUSDT", "BNBUSDT"}
 	timeframes := []string{"5m", "1h"}
 	base := make(models.PairsCrypto, 0)
@@ -74,7 +76,10 @@ func (a *AnalysisService) uploadApi() models.PairsCrypto {
 				Indicators: a.calcIndicator(candlesApi),
 				Timestamp:  time.Now().Unix(),
 			}
-			base = append(base, analysisData)
+			err := a.tempStore.SaveAnalysisData(analysisData)
+			if err != nil {
+				slog.Error("err in uploadApi()", "err", err)
+			}
 
 			slog.Debug("Данные загружены",
 				"pair", p,
@@ -83,16 +88,13 @@ func (a *AnalysisService) uploadApi() models.PairsCrypto {
 		}
 	}
 
-	// Сохраняем в хранилище через интерфейс
 	if err := a.store.SaveAnalysisData(base); err != nil {
 		slog.Error("Ошибка при сохранении данных в хранилище",
 			"error", err)
 	}
 
-	return base
 }
 
-// uploadFromStorage загружает данные из хранилища
 func (a *AnalysisService) uploadFromStorage() models.PairsCrypto {
 
 	data, err := a.store.LoadAnalysisData()
@@ -101,11 +103,9 @@ func (a *AnalysisService) uploadFromStorage() models.PairsCrypto {
 			"error", err)
 		return models.PairsCrypto{}
 	}
-
 	return data
 }
 
-// fetchFromApi делает запрос к API Binance для получения свечей
 func (a *AnalysisService) fetchFromApi(pair, timeframe string) []models.Candle {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -131,7 +131,6 @@ func (a *AnalysisService) fetchFromApi(pair, timeframe string) []models.Candle {
 	return candles
 }
 
-// calcIndicator рассчитывает технические индикаторы на основе свечей
 func (a *AnalysisService) calcIndicator(candles []models.Candle) models.TechnicalIndicators {
 	if len(candles) < 50 {
 		slog.Warn("Недостаточно свечей для расчета индикаторов",
@@ -197,7 +196,6 @@ func (a *AnalysisService) calcIndicator(candles []models.Candle) models.Technica
 	return indicators
 }
 
-// calculateEMA рассчитывает Exponential Moving Average
 func (a *AnalysisService) calculateEMA(candles []models.Candle, period int) float64 {
 	if len(candles) < period {
 		return 0
@@ -219,17 +217,14 @@ func (a *AnalysisService) calculateEMA(candles []models.Candle, period int) floa
 	return ema
 }
 
-// calculateMACDSignal рассчитывает сигнальную линию MACD
 func (a *AnalysisService) calculateMACDSignal(_ []models.Candle, ema12, ema26 float64) float64 {
-	// Упрощенный расчет сигнальной линии
-	// В реальности нужно рассчитывать EMA9 от значений MACD
-	return (ema12 + ema26) / 2 * 0.9 // Упрощенная формула для примера
+
+	return (ema12 + ema26) / 2 * 0.9 
 }
 
-// calculateRSI рассчитывает Relative Strength Index
 func (a *AnalysisService) calculateRSI(candles []models.Candle, period int) float64 {
 	if len(candles) <= period {
-		return 50.0 // Нейтральное значение при недостатке данных
+		return 50.0 
 	}
 
 	gains := 0.0
@@ -262,52 +257,30 @@ func (a *AnalysisService) asyncUpdatePairs() {
 	for range ticker.C {
 
 		startTime := time.Now()
-		newPairs := a.uploadApi()
-
-		a.mu.Lock()
-		a.Pairs = newPairs
-		a.mu.Unlock()
+		a.uploadApi()
 
 		duration := time.Since(startTime)
 
 		slog.Info("Данные для анализа пар с usdt успешно обновлены",
 			"duration", duration,
-			"records", len(newPairs))
+			"records", a.tempStore.GetStats())
 	}
 }
 
-// GetPairInfo возвращает информацию по паре и таймфрейму
 func (a *AnalysisService) GetPairInfo(pair, timeframe string) (*models.AnalysisData, error) {
 	slog.Debug("Поиск данных по паре",
 		"pair", pair,
 		"timeframe", timeframe)
-
-	a.mu.RLock()
-	defer a.mu.RUnlock()
-
-	for _, data := range a.Pairs {
-		if data.Pair == pair && data.Timeframe == timeframe {
-			slog.Debug("Данные найдены",
-				"pair", pair,
-				"timeframe", timeframe)
-			return &data, nil
-		}
+	res, err := a.tempStore.GetAnalysisData(pair, timeframe)
+	if err == nil {
+		fmt.Println(res)
+		return res, err
 	}
-
 	slog.Warn("Данные не найдены",
 		"pair", pair,
-		"timeframe", timeframe)
+		"timeframe", timeframe,
+		"err", err,
+	)
 
 	return nil, fmt.Errorf("данные для пары %s и таймфрейма %s не найдены", pair, timeframe)
-}
-
-// GetAllPairs возвращает все доступные пары
-func (a *AnalysisService) GetAllPairs() models.PairsCrypto {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
-
-	slog.Debug("Запрос всех пар",
-		"availablePairs", len(a.Pairs))
-
-	return a.Pairs
 }

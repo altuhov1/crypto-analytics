@@ -16,7 +16,6 @@ func NewUserService(userStorage storage.UserStorage) *UserService {
 	return &UserService{userStorage: userStorage}
 }
 
-// RegisterUser - регистрация нового пользователя
 func (s *UserService) RegisterUser(user *models.User) error {
 	var err error
 	user.Password, err = s.HashPassword(user.Password)

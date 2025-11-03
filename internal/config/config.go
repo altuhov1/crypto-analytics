@@ -10,21 +10,28 @@ import (
 
 type Config struct {
 	ServerPort      string `env:"PORT" envDefault:"8080"`
-	PG_DBHost       string `env:"DB_PG_HOST" envDefault:"localhost"`
+	PG_DBHost       string `env:"DB_PG_HOST" envDefault:"postgres"`
 	PG_DBUser       string `env:"DB_PG_USER" envDefault:"webuser"`
 	PG_DBPassword   string `env:"DB_PG_PASSWORD" envDefault:"1111"`
 	PG_DBName       string `env:"DB_PG_NAME" envDefault:"webdev"`
 	PG_DBSSLMode    string `env:"DB_PG_SSLMODE" envDefault:"disable"`
+	PG_PORT         string `env:"DB_PG_PORT" envDefault:"5432"`
 	MG_DBUser       string `env:"MG_DB_USER" envDefault:"admin"`
 	MG_DBPassword   string `env:"MG_DB_PASSWORD" envDefault:"password"`
 	MG_DBHost       string `env:"MG_DB_HOST" envDefault:"localhost"`
 	MG_DBName       string `env:"MG_DB_NAME" envDefault:"mydatabase"`
 	MG_Auth         string `env:"MG_DB_AUTH_SOURCE" envDefault:"admin"`
+	MG_Port         string `env:"MG_DB_PORT" envDefault:"27017"`
 	KeyUsersGorilla string `env:"KEY_USERS_GORILLA" envDefault:"my-super-secret-key-12345"`
-	LaunchLoc       string `env:"LAUNCH_LOC" envDefault:"local"`
+	LaunchLoc       string `env:"LAUNCH_LOC" envDefault:"prod"`
 	LogLevel        string `env:"LOG_LEVEL" envDefault:"info"`
 	TgBotToken      string `env:"TG_BOT_TOKEN" envDefault:""`
 	TgChatIDs       string `env:"TG_CHAT_IDS" envDefault:""`
+	RedisHost       string `env:"REDIS_HOST" envDefault:"localhost"`
+	RedisPassword   string `env:"REDIS_PASSWORD" envDefault:""`
+	RedisDB         int    `env:"REDIS_DB" envDefault:"0"`
+	RedisPoolSize   int    `env:"REDIS_POOL_SIZE" envDefault:"10"`
+	RedisPort       string `env:"REDIS_PORT" envDefault:"6379"`
 }
 
 func getLogLevelFromString(levelStr string) slog.Level {

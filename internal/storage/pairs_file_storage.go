@@ -30,7 +30,7 @@ func (p *PairsFileStorage) Save(data []byte, amountPairs int) error {
 	return nil
 }
 
-// ensureCacheDir создает директорию для кэш файла если её нет
+
 func (p *PairsFileStorage) ensureCacheDir() error {
 	dir := filepath.Dir(p.cacheFile)
 	if err := os.MkdirAll(dir, 0755); err != nil {

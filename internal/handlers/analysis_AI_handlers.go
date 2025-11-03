@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+// анализ ai
 type PairsDataResponse struct {
 	Success bool     `json:"success"`
 	Pairs   []string `json:"pairs,omitempty"`
@@ -23,21 +24,10 @@ type SelectPairResponse struct {
 	Error   string `json:"error,omitempty"`
 }
 
-// CryptoPairsPageHandler отображает страницу выбора пар
 func (h *Handler) CryptoPairsPageHandler(w http.ResponseWriter, r *http.Request) {
-	// pairs, err := h.pairs.GetAllPairs()
-	// if err != nil {
-	// 	slog.Error("Failed to get pairs for page", "error", err)
-	// 	http.Error(w, "Failed to load crypto pairs", http.StatusInternalServerError)
-	// 	return
-	// }
-
-	// Здесь можно использовать шаблонизатор или просто отдать HTML
-	// Для простоты будем отдавать готовый HTML с данными
 	http.ServeFile(w, r, "static/crypto_pairs.html")
 }
 
-// GetAllPairsHandler возвращает все пары для клиентского поиска
 func (h *Handler) GetAllPairsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -62,7 +52,6 @@ func (h *Handler) GetAllPairsHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// SelectPairHandler отправляет выбранную пару на внешний бэкенд
 func (h *Handler) SelectPairHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -89,7 +78,6 @@ func (h *Handler) SelectPairHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Валидация пары
 	pairs, err := h.pairs.GetAllPairs()
 	if err != nil {
 		slog.Error("Failed to get pairs for validation", "error", err)
@@ -100,7 +88,6 @@ func (h *Handler) SelectPairHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Проверяем, существует ли такая пара
 	validPair := false
 	for _, pair := range pairs {
 		if pair == req.Pair {
@@ -141,45 +128,4 @@ func (h *Handler) sendToExternalBackend(pair string) error {
 	// TODO: Реализовать отправку на ваш внешний бэкенд
 	slog.Info("Sending to external backend (stub)", "pair", pair)
 	return nil
-}
-
-func (h *Handler) GetPairInfo(w http.ResponseWriter, r *http.Request) {
-	pair := r.URL.Query().Get("pair")
-	timeframe := r.URL.Query().Get("timeframe")
-
-	if pair == "" || timeframe == "" {
-		http.Error(w, "Параметры pair и timeframe обязательны", http.StatusBadRequest)
-		return
-	}
-
-	data, err := h.amalysis.GetPairInfo(pair, timeframe)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-}
-
-// GetAllPairs возвращает все пары
-func (h *Handler) GetAllPairs(w http.ResponseWriter, r *http.Request) {
-	pairs := h.amalysis.GetAllPairs()
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(pairs)
-}
-
-// GetAvailablePairs возвращает список доступных пар
-func (h *Handler) GetAvailablePairs(w http.ResponseWriter, r *http.Request) {
-	pairs := []string{"BTCUSDT", "ETHUSDT", "BNBUSDT"}
-	timeframes := []string{"5m", "1h"}
-
-	response := map[string]interface{}{
-		"pairs":      pairs,
-		"timeframes": timeframes,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
 }

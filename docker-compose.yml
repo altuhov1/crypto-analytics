@@ -36,14 +36,31 @@ services:
       start_period: 20s
     networks:
       - internal
+
+  redis:
+    image: redis:8.2-alpine
+    command: redis-server --appendonly yes --requirepass redispassword
+    volumes:
+      - redis_data:/data
+      - redis_logs:/var/log/redis
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "redispassword", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - internal
   app:
     networks:
       - internal
+      - public
     build: .
     depends_on:
       postgres:
         condition: service_healthy
       mongodb:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   caddy:
@@ -62,11 +79,14 @@ services:
 
 networks:
   internal:
-    internal: true  
+    internal: true
   public:
+
 
 volumes:
   postgres_data:
   mongodb_data:
   caddy_logs:
   mongodb_logs:
+  redis_data:
+  redis_logs:

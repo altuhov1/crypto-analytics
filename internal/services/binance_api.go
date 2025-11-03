@@ -25,7 +25,6 @@ func NewBinanceAPI() *BinanceAPI {
 	}
 }
 
-// BinanceCandleResponse представляет ответ от Binance API для свечей
 type BinanceCandleResponse []interface{}
 
 // fetchCandlesFromBinance получает свечи с Binance API
@@ -53,7 +52,7 @@ func (b *BinanceAPI) fetchCandlesFromBinance(symbol, interval string, limit int)
 	var rawCandles []BinanceCandleResponse
 
 	decoder := json.NewDecoder(bytes.NewReader(body))
-	decoder.DisallowUnknownFields() // опционально: запрещает неизвестные поля
+	decoder.DisallowUnknownFields() 
 
 	if err := decoder.Decode(&rawCandles); err != nil {
 		return nil, fmt.Errorf("ошибка парсинга JSON: %w", err)
@@ -76,7 +75,7 @@ func (b *BinanceAPI) fetchCandlesFromBinance(symbol, interval string, limit int)
 	return candles, nil
 }
 
-// parseCandle парсит сырые данные свечи из Binance
+
 func (b *BinanceAPI) parseCandle(raw []interface{}) (models.Candle, error) {
 	var candle models.Candle
 
