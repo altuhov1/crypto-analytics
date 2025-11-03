@@ -27,7 +27,6 @@ func NewBinanceAPI() *BinanceAPI {
 
 type BinanceCandleResponse []interface{}
 
-// fetchCandlesFromBinance получает свечи с Binance API
 func (b *BinanceAPI) fetchCandlesFromBinance(symbol, interval string, limit int) ([]models.Candle, error) {
 	url := fmt.Sprintf("%s/klines?symbol=%s&interval=%s&limit=%d",
 		b.baseURL, symbol, interval, limit)
@@ -74,7 +73,6 @@ func (b *BinanceAPI) fetchCandlesFromBinance(symbol, interval string, limit int)
 
 	return candles, nil
 }
-
 
 func (b *BinanceAPI) parseCandle(raw []interface{}) (models.Candle, error) {
 	var candle models.Candle

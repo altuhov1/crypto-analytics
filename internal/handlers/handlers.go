@@ -48,7 +48,6 @@ func NewHandler(storage storage.FormStorage,
 		"formatMoney":  formatMoney,
 		"parseTime":    parseTime,
 		"stripHTML": func(html string) string {
-			// Простая очистка от HTML тегов
 			re := regexp.MustCompile(`<[^>]*>`)
 			return re.ReplaceAllString(html, "")
 		},

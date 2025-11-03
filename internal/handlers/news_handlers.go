@@ -6,7 +6,6 @@ import (
 )
 
 func (h *Handler) NewsPage(w http.ResponseWriter, r *http.Request) {
-	// Получаем уже отсортированные новости из сервиса
 	news, err := h.newsStorage.GetNews()
 	if err != nil {
 		http.Error(w, "Failed to load news: "+err.Error(), http.StatusInternalServerError)
