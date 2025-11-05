@@ -9,7 +9,6 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// Простые моки как в хендлерах
 type MockTempStorage struct {
 	Response *models.AnalysisData
 	Error    error
@@ -47,7 +46,6 @@ func (m *MockStorage) LoadAnalysisData() (models.PairsCrypto, error) {
 }
 
 func TestAnalysisService_GetPairInfo_Simple(t *testing.T) {
-	// Создаем тестовые данные
 	createTestData := func(pair, timeframe string) *models.AnalysisData {
 		return &models.AnalysisData{
 			Pair:      pair,
@@ -198,4 +196,113 @@ func TestAnalysisService_GetPairInfo_Simple(t *testing.T) {
 			}
 		})
 	}
+}
+func TestAnalysisService_calculateRSI_NewAlgorithm(t *testing.T) {
+	createCandles := func(prices []float64) []models.Candle {
+		candles := make([]models.Candle, len(prices))
+		for i, price := range prices {
+			candles[i] = models.Candle{Close: price}
+		}
+		return candles
+	}
+
+	tests := []struct {
+		name     string
+		candles  []models.Candle
+		period   int
+		expected float64
+	}{
+		{
+			name:     "not enough candles",
+			candles:  createCandles([]float64{100, 101, 102}),
+			period:   14,
+			expected: 50.0,
+		},
+		{
+			name:     "exactly period candles",
+			candles:  createCandles([]float64{100, 101, 102, 103}),
+			period:   4,
+			expected: 50.0,
+		},
+		{
+			name: "all gains",
+			candles: createCandles([]float64{
+				100, 101, 102, 103, 104, 105,
+			}),
+			period:   3,
+			expected: 100.0,
+		},
+		{
+			name: "all losses",
+			candles: createCandles([]float64{
+				105, 104, 103, 102, 101, 100,
+			}),
+			period:   3,
+			expected: 0.0,
+		},
+		{
+			name: "equal gains and losses",
+			candles: createCandles([]float64{
+				100, 102,
+				100,
+				102,
+				100,
+			}),
+			period:   2,
+			expected: 50.0,
+		},
+		{
+			name: "more gains than losses",
+			candles: createCandles([]float64{
+				100, 102,
+				101,
+				103,
+			}),
+			period:   2,
+			expected: 66.67,
+		},
+		{
+			name: "real RSI calculation",
+			candles: createCandles([]float64{
+				100, 102,
+				101,
+				103,
+				102,
+				105,
+			}),
+			period:   4,
+			expected: 71.43,
+		},
+		{
+			name:     "empty candles",
+			candles:  []models.Candle{},
+			period:   14,
+			expected: 50.0,
+		},
+		{
+			name:     "single candle",
+			candles:  createCandles([]float64{100}),
+			period:   14,
+			expected: 50.0,
+		},
+	}
+
+	service := &AnalysisService{}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := service.calculateRSI(tt.candles, tt.period)
+
+			if abs(result-tt.expected) > 0.01 {
+				t.Errorf("calculateRSI() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func abs(x float64) float64 {
+	if x < 0 {
+		return -x
+	}
+	return x
 }

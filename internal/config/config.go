@@ -16,10 +16,10 @@ type Config struct {
 	PG_DBName       string `env:"DB_PG_NAME" envDefault:"webdev"`
 	PG_DBSSLMode    string `env:"DB_PG_SSLMODE" envDefault:"disable"`
 	PG_PORT         string `env:"DB_PG_PORT" envDefault:"5432"`
-	MG_DBUser       string `env:"MG_DB_USER" envDefault:"admin"`
-	MG_DBPassword   string `env:"MG_DB_PASSWORD" envDefault:"password"`
+	MG_DBUser       string `env:"MG_DB_USER" envDefault:"appuser"`
+	MG_DBPassword   string `env:"MG_DB_PASSWORD" envDefault:"apppassword"`
 	MG_DBHost       string `env:"MG_DB_HOST" envDefault:"mongodb"`
-	MG_DBName       string `env:"MG_DB_NAME" envDefault:"mydatabase"`
+	MG_DBName       string `env:"MG_DB_NAME" envDefault:"cryptodb"`
 	MG_Auth         string `env:"MG_DB_AUTH_SOURCE" envDefault:"admin"`
 	MG_Port         string `env:"MG_DB_PORT" envDefault:"27017"`
 	KeyUsersGorilla string `env:"KEY_USERS_GORILLA" envDefault:"my-super-secret-key-12345"`

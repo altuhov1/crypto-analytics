@@ -226,20 +226,41 @@ func (a *AnalysisService) calculateRSI(candles []models.Candle, period int) floa
 		return 50.0
 	}
 
-	gains := 0.0
-	losses := 0.0
+	gains := make([]float64, 0, len(candles)-1)
+	losses := make([]float64, 0, len(candles)-1)
 
-	for i := 1; i <= period; i++ {
-		change := candles[len(candles)-i].Close - candles[len(candles)-i-1].Close
+	for i := 1; i < len(candles); i++ {
+		change := candles[i].Close - candles[i-1].Close
 		if change > 0 {
-			gains += change
+			gains = append(gains, change)
+			losses = append(losses, 0)
 		} else {
-			losses -= change
+			gains = append(gains, 0)
+			losses = append(losses, -change)
 		}
 	}
 
-	avgGain := gains / float64(period)
-	avgLoss := losses / float64(period)
+	startIdx := len(gains) - period
+	if startIdx < 0 {
+		startIdx = 0
+	}
+
+	avgGain := 0.0
+	avgLoss := 0.0
+	count := 0
+
+	for i := startIdx; i < len(gains); i++ {
+		avgGain += gains[i]
+		avgLoss += losses[i]
+		count++
+	}
+
+	if count == 0 {
+		return 50.0
+	}
+
+	avgGain /= float64(count)
+	avgLoss /= float64(count)
 
 	if avgLoss == 0 {
 		return 100.0
