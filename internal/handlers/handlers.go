@@ -21,26 +21,26 @@ import (
 type Handler struct {
 	storage       storage.FormStorage
 	notifier      services.Notifier
-	cryptoSvc     *services.CryptoService
-	userService   *services.UserService
+	cryptoSvc     services.GetAllPairsService
+	userService   services.UserLogService
 	tmpl          *template.Template
 	storeSessions *sessions.CookieStore
-	newsStorage   *services.NewsService
-	pairs         *services.CryptoPairsService
-	amalysis      *services.AnalysisService
-	postsService  *services.PostsService
+	newsStorage   services.NewsRssService
+	pairs         services.AIAnalysisService
+	Analysis      services.AnalysisGService
+	postsService  services.PostPService
 }
 
 // NewHandler создает новый экземпляр Handler
 func NewHandler(storage storage.FormStorage,
 	notifier services.Notifier,
-	cryptoSvc *services.CryptoService,
-	userService *services.UserService,
+	cryptoSvc services.GetAllPairsService,
+	userService services.UserLogService,
 	KeyUsersGorilla string,
-	newsStor *services.NewsService,
-	pairss *services.CryptoPairsService,
-	amalys *services.AnalysisService,
-	post *services.PostsService) (*Handler, error) {
+	newsStor services.NewsRssService,
+	pairss services.AIAnalysisService,
+	analys services.AnalysisGService,
+	post services.PostPService) (*Handler, error) {
 
 	tmpl := template.New("").Funcs(template.FuncMap{
 		"formatNumber": formatNumber,
@@ -70,7 +70,7 @@ func NewHandler(storage storage.FormStorage,
 			[]byte(KeyUsersGorilla)),
 		newsStorage:  newsStor,
 		pairs:        pairss,
-		amalysis:     amalys,
+		Analysis:     analys,
 		postsService: post,
 	}, nil
 }

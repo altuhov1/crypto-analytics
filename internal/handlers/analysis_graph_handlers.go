@@ -14,7 +14,7 @@ func (h *Handler) GetPairInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.amalysis.GetPairInfo(pair, timeframe)
+	data, err := h.Analysis.GetPairInfo(pair, timeframe)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return

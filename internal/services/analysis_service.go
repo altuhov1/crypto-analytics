@@ -26,7 +26,6 @@ func NewAnalysisService(goToApi bool, store storage.AnalysisStorage, tempS stora
 		tempStore:  tempS,
 	}
 
-
 	if goToApi {
 		slog.Info("Загрузка данных из API Binance")
 		service.uploadApi()
@@ -219,12 +218,12 @@ func (a *AnalysisService) calculateEMA(candles []models.Candle, period int) floa
 
 func (a *AnalysisService) calculateMACDSignal(_ []models.Candle, ema12, ema26 float64) float64 {
 
-	return (ema12 + ema26) / 2 * 0.9 
+	return (ema12 + ema26) / 2 * 0.9
 }
 
 func (a *AnalysisService) calculateRSI(candles []models.Candle, period int) float64 {
 	if len(candles) <= period {
-		return 50.0 
+		return 50.0
 	}
 
 	gains := 0.0
@@ -273,7 +272,7 @@ func (a *AnalysisService) GetPairInfo(pair, timeframe string) (*models.AnalysisD
 		"timeframe", timeframe)
 	res, err := a.tempStore.GetAnalysisData(pair, timeframe)
 	if err == nil {
-		fmt.Println(res)
+
 		return res, err
 	}
 	slog.Warn("Данные не найдены",
