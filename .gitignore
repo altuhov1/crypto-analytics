@@ -24,5 +24,6 @@ crypto_cache.json
 .DS_Store
 info_contacts.json
 crypto_cache.json
-analysis_cache.json
+news_cache.json
+pairs_cache.json
 logs
