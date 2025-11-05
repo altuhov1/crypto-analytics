@@ -18,7 +18,7 @@ type Config struct {
 	PG_PORT         string `env:"DB_PG_PORT" envDefault:"5432"`
 	MG_DBUser       string `env:"MG_DB_USER" envDefault:"admin"`
 	MG_DBPassword   string `env:"MG_DB_PASSWORD" envDefault:"password"`
-	MG_DBHost       string `env:"MG_DB_HOST" envDefault:"localhost"`
+	MG_DBHost       string `env:"MG_DB_HOST" envDefault:"mongodb"`
 	MG_DBName       string `env:"MG_DB_NAME" envDefault:"mydatabase"`
 	MG_Auth         string `env:"MG_DB_AUTH_SOURCE" envDefault:"admin"`
 	MG_Port         string `env:"MG_DB_PORT" envDefault:"27017"`
@@ -27,7 +27,7 @@ type Config struct {
 	LogLevel        string `env:"LOG_LEVEL" envDefault:"info"`
 	TgBotToken      string `env:"TG_BOT_TOKEN" envDefault:""`
 	TgChatIDs       string `env:"TG_CHAT_IDS" envDefault:""`
-	RedisHost       string `env:"REDIS_HOST" envDefault:"localhost"`
+	RedisHost       string `env:"REDIS_HOST" envDefault:"redis"`
 	RedisPassword   string `env:"REDIS_PASSWORD" envDefault:""`
 	RedisDB         int    `env:"REDIS_DB" envDefault:"0"`
 	RedisPoolSize   int    `env:"REDIS_POOL_SIZE" envDefault:"10"`
