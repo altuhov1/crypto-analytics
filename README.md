@@ -102,12 +102,20 @@
  
 - [ ] Пример логирования в Telegram  
 ![фото](./pictures/tg.png)
+
+
 - [ ] Интерфейс анализа пары
 ![фото](./pictures/graph.png)
+
+
 - [ ] Форма создания поста
 ![фото](./pictures/posts.png)
+
+
 - [ ] Лента новостей
 ![фото](./pictures/news.png)
+
+
 - [ ] Регестраия
 ![фото](./pictures/reg.png)
 ---
