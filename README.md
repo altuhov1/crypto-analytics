@@ -96,7 +96,14 @@
 > Все операции с изменением данных (посты, комментарии, избранное) защищены проверкой ownership и авторизацией.
 
 ---
+## Запуск локально
 
+```bash
+git clone https://github.com/altuhov/crypto-insight.git
+cd crypto-insight
+docker-compose up --build
+```
+---
 ## Скриншоты
  
 <div align="center">
@@ -130,10 +137,3 @@
 *Простая и безопасная регистрация с валидацией*
 
 </div>
-
-## Запуск локально
-
-```bash
-git clone https://github.com/altuhov/crypto-insight.git
-cd crypto-insight
-docker-compose up --build
