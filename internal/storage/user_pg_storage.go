@@ -31,12 +31,6 @@ func (s *UserPostgresStorage) Close() {
 
 func (s *UserPostgresStorage) CreateUser(user *models.User) error {
 
-	if hasDangerousCharacters(user.Email) {
-		return fmt.Errorf("email contains dangerous characters")
-	}
-	if hasDangerousCharacters(user.Username) {
-		return fmt.Errorf("username contains dangerous characters")
-	}
 	query := `
 		INSERT INTO users (email, password, username, favorite_coins) 
 		VALUES ($1, $2, $3, $4)
@@ -60,11 +54,6 @@ func (s *UserPostgresStorage) CreateUser(user *models.User) error {
 }
 
 func (s *UserPostgresStorage) GetUserByName(nameU string) (*models.User, error) {
-
-	if hasDangerousCharacters(nameU) {
-		return nil, fmt.Errorf("username contains dangerous characters")
-	}
-
 	query := `
 		SELECT email, password, username, favorite_coins 
 		FROM users 
@@ -94,9 +83,6 @@ func (s *UserPostgresStorage) GetUserByName(nameU string) (*models.User, error) 
 
 func (s *UserPostgresStorage) GetAllFavoriteCoins(nameU string) ([]string, error) {
 
-	if hasDangerousCharacters(nameU) {
-		return nil, fmt.Errorf("username contains dangerous characters")
-	}
 	query := `
 		SELECT favorite_coins 
 		FROM users 
@@ -119,12 +105,6 @@ func (s *UserPostgresStorage) GetAllFavoriteCoins(nameU string) ([]string, error
 
 func (s *UserPostgresStorage) NewFavoriteCoin(nameU string, nameCoin string) error {
 
-	if hasDangerousCharacters(nameU) {
-		return fmt.Errorf("username contains dangerous characters")
-	}
-	if hasDangerousCharacters(nameCoin) {
-		return fmt.Errorf("coin symbol contains dangerous characters")
-	}
 	tx, err := s.pool.Begin(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -177,12 +157,6 @@ func (s *UserPostgresStorage) NewFavoriteCoin(nameU string, nameCoin string) err
 
 func (s *UserPostgresStorage) RemoveFavoriteCoin(nameU string, nameCoin string) error {
 
-	if hasDangerousCharacters(nameU) {
-		return fmt.Errorf("username contains dangerous characters")
-	}
-	if hasDangerousCharacters(nameCoin) {
-		return fmt.Errorf("coin symbol contains dangerous characters")
-	}
 	tx, err := s.pool.Begin(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)

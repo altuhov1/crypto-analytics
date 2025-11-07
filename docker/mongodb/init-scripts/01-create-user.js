@@ -1,5 +1,3 @@
-db.getSiblingDB('admin').auth('admin', 'mongosecret');
-
 db = db.getSiblingDB('cryptodb');
 
 db.createUser({
@@ -16,3 +14,6 @@ db.createUser({
         }
     ]
 });
+db.createCollection('posts');
+db.createCollection('comments');
+

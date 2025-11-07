@@ -20,7 +20,7 @@ type Config struct {
 	MG_DBPassword   string `env:"MG_DB_PASSWORD" envDefault:"apppassword"`
 	MG_DBHost       string `env:"MG_DB_HOST" envDefault:"mongodb"`
 	MG_DBName       string `env:"MG_DB_NAME" envDefault:"cryptodb"`
-	MG_Auth         string `env:"MG_DB_AUTH_SOURCE" envDefault:"admin"`
+	MG_Auth         string `env:"MG_DB_AUTH_SOURCE" envDefault:"appuser"`
 	MG_Port         string `env:"MG_DB_PORT" envDefault:"27017"`
 	KeyUsersGorilla string `env:"KEY_USERS_GORILLA" envDefault:"my-super-secret-key-12345"`
 	LaunchLoc       string `env:"LAUNCH_LOC" envDefault:"prod"`

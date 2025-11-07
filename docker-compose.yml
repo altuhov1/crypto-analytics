@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: cryptodb
     volumes:
       - ./docker/postgres/init-scripts:/docker-entrypoint-initdb.d
@@ -20,7 +20,7 @@ services:
     image: mongo:7
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: mongosecret
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: cryptodb
     volumes:
       - mongodb_data:/data/db

@@ -22,15 +22,6 @@ func NewContactPostgresStorage(pool *pgxpool.Pool) *ContStorage {
 }
 
 func (s *ContStorage) SaveContactFrom(contact *models.ContactForm) error {
-	if hasDangerousCharacters(contact.Name) {
-		return fmt.Errorf("name contains dangerous characters")
-	}
-	if hasDangerousCharacters(contact.Email) {
-		return fmt.Errorf("email contains dangerous characters")
-	}
-	if hasDangerousCharacters(contact.Message) {
-		return fmt.Errorf("message contains dangerous characters")
-	}
 
 	query := `
     INSERT INTO contacts (name, email, message)
@@ -72,12 +63,10 @@ func (s *ContStorage) Close() {
 	s.pool.Close()
 }
 
-// ExportContactsToJSON экспортирует контакты в JSON файл (альтернативный вариант)
 func (s *ContStorage) ExportContactsToJSON(filename string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Выполняем запрос для получения всех контактов
 	rows, err := s.pool.Query(ctx, `
 		SELECT id, name, email, message, created_at
 		FROM contacts
@@ -126,12 +115,10 @@ func (s *ContStorage) ExportContactsToJSON(filename string) error {
 		contactCount++
 	}
 
-	// Проверяем ошибки после итерации
 	if err := rows.Err(); err != nil {
 		return fmt.Errorf("ошибка при чтении строк: %w", err)
 	}
 
-	// Записываем данные в файл
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
 	if err := encoder.Encode(contacts); err != nil {
@@ -146,14 +133,12 @@ func (s *ContStorage) ExportContactsToJSON(filename string) error {
 	return nil
 }
 
-// GetContactsStats возвращает статистику по контактам (дополнительный метод)
 func (s *ContStorage) GetContactsStats() (map[string]interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	stats := make(map[string]interface{})
 
-	// Получаем общее количество контактов
 	var totalContacts int
 	err := s.pool.QueryRow(ctx, "SELECT COUNT(*) FROM contacts").Scan(&totalContacts)
 	if err != nil {
@@ -161,14 +146,12 @@ func (s *ContStorage) GetContactsStats() (map[string]interface{}, error) {
 	}
 	stats["total_contacts"] = totalContacts
 
-	// Получаем дату самого старого контакта
 	var oldestContact time.Time
 	err = s.pool.QueryRow(ctx, "SELECT MIN(created_at) FROM contacts").Scan(&oldestContact)
 	if err == nil {
 		stats["oldest_contact"] = oldestContact.Format("2006-01-02")
 	}
 
-	// Получаем дату самого нового контакта
 	var newestContact time.Time
 	err = s.pool.QueryRow(ctx, "SELECT MAX(created_at) FROM contacts").Scan(&newestContact)
 	if err == nil {
