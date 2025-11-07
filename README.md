@@ -98,7 +98,6 @@
 
 ```bash
 git clone https://github.com/altuhov/crypto-insight.git
-cd crypto-insight
 docker-compose up --build
 ```
 ---
