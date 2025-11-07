@@ -1,15 +1,12 @@
 package handlers
 
 import (
-	"encoding/json"
-	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
 	"path/filepath"
 	"regexp"
 	"strconv"
-	"time"
 
 	"crypto-analytics/internal/models"
 	"crypto-analytics/internal/services"
@@ -140,22 +137,4 @@ func (h *Handler) CryptoTopHandler(w http.ResponseWriter, r *http.Request) {
 		slog.Warn("Ошибка рендеринга шаблона:", "error", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
-}
-
-func (h *Handler) CacheInfoHandler(w http.ResponseWriter, r *http.Request) {
-	count, cacheTime := h.cryptoSvc.GetCacheInfo()
-
-	info := map[string]interface{}{
-		"cached_coins": count,
-		"last_updated": cacheTime.Format("2006-01-02 15:04:05"),
-		"age_minutes":  time.Since(cacheTime).Minutes(),
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(info)
-}
-
-func (h *Handler) InfoOfContacts(w http.ResponseWriter, r *http.Request) {
-	h.storage.ExportContactsToJSON("storage/info_contacts.json")
-	fmt.Fprint(w, "OK")
 }

@@ -32,6 +32,7 @@ type Config struct {
 	RedisDB         int    `env:"REDIS_DB" envDefault:"0"`
 	RedisPoolSize   int    `env:"REDIS_POOL_SIZE" envDefault:"10"`
 	RedisPort       string `env:"REDIS_PORT" envDefault:"6379"`
+	ProfFlag        int    `env:"PROF_FLAG" envDefault:"0"`
 }
 
 func getLogLevelFromString(levelStr string) slog.Level {

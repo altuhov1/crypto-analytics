@@ -3,7 +3,6 @@ package handlers
 import (
 	"crypto-analytics/internal/models"
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -220,9 +219,4 @@ func (h *Handler) getCurrentUser(r *http.Request) (string, bool) {
 
 	username, ok := session.Values["username"].(string)
 	return username, ok
-}
-
-func (h *Handler) InfoOfUsers(w http.ResponseWriter, r *http.Request) {
-	h.userService.PrintJsonAllUsers("storage/user.json")
-	fmt.Fprint(w, "OK")
 }

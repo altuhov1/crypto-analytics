@@ -180,9 +180,6 @@ func (a *App) setupRoutes(handler *handlers.Handler) http.Handler {
 	apiRoutes := map[string]http.HandlerFunc{
 		"/api/allFavoriteCoin":    handler.GetFavorites,
 		"/api/changeFavoriteCoin": handler.ChangeFavorite,
-		"/api/printUserstInfo":    handler.InfoOfUsers,
-		"/api/printContactInfo":   handler.InfoOfContacts,
-		"/api/cache-info":         handler.CacheInfoHandler,
 		"/api/all-pairs":          handler.GetAllPairsHandler,
 		"/api/select-pair":        handler.SelectPairHandler,
 		"/api/pair":               handler.GetPairInfo,
@@ -216,7 +213,7 @@ func (a *App) setupRoutes(handler *handlers.Handler) http.Handler {
 	for path, handlerFunc := range webRoutes {
 		mux.HandleFunc(path, handlerFunc)
 	}
-	if a.cfg.LaunchLoc == "prod" {
+	if a.cfg.ProfFlag == 1 {
 		mux.HandleFunc("/debug/pprof/", pprof.Index)
 		mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
 		mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
