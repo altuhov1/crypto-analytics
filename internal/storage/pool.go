@@ -53,7 +53,6 @@ func NewMongoClient(config *config.MGConfig) (*mongo.Client, error) {
 		config.Port,
 		config.DBName,
 		config.DBAuth)
-	fmt.Println(uri)
 	clientOptions := options.Client().ApplyURI(uri).SetServerSelectionTimeout(10 * time.Second)
 	clientOptions.SetMaxPoolSize(100)
 	clientOptions.SetMinPoolSize(5)
