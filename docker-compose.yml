@@ -66,10 +66,12 @@ services:
   caddy:
     image: caddy:2-alpine
     ports:
-      - "80:80"
+      - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./static:/usr/share/caddy
+      - caddy_data:/data      
+      - caddy_config:/config
       - caddy_logs:/var/log/caddy
     depends_on:
       - app
@@ -90,3 +92,5 @@ volumes:
   mongodb_logs:
   redis_data:
   redis_logs:
+  caddy_data: 
+  caddy_config: 
