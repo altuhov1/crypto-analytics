@@ -106,9 +106,9 @@ docker-compose up --build
  
 <div align="center">
 
-### Логирование в Telegram  
-![Логирование в Telegram](./static/images/pictures_README/tg.png)  
-*Уведомления об ошибках и событиях в production-режиме*
+### Регистрация и вход  
+![Форма регистрации](./static/images/pictures_README/reg.png)  
+*Простая и безопасная регистрация с валидацией*
 
 ---
 
@@ -130,8 +130,8 @@ docker-compose up --build
 
 ---
 
-### Регистрация и вход  
-![Форма регистрации](./static/images/pictures_README/reg.png)  
-*Простая и безопасная регистрация с валидацией*
+### Логирование в Telegram  
+![Логирование в Telegram](./static/images/pictures_README/tg.png)  
+*Уведомления об ошибках и событиях в production-режиме*
 
 </div>
