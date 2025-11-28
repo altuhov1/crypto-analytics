@@ -184,6 +184,23 @@
     background: var(--secondary-bg);
 }
 
+/* Обертка для контента постов */
+.posts-content-wrapper {
+    padding: 40px 0;
+}
+
+/* Когда create-post скрыт (неавторизованные) - увеличиваем отступ */
+#create-post[style*="display: none"]~#posts-section .posts-content-wrapper {
+    padding-top: 80px;
+    padding-bottom: 40px;
+}
+
+/* Когда create-post виден (авторизованные) - обычные отступы */
+#create-post[style*="display: block"]~#posts-section .posts-content-wrapper {
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+
 .modal-body {
     padding: 24px;
     overflow-y: auto;
