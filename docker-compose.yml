@@ -54,7 +54,9 @@ services:
     networks:
       - internal
       - public
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.golang
     depends_on:
       postgres:
         condition: service_healthy
