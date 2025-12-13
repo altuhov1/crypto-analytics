@@ -2,13 +2,13 @@ services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: cryptodb
+      POSTGRES_USER: ${MAIN_USER_DB_PG}
+      POSTGRES_PASSWORD: ${DB_PG_PASSWORD}
+      POSTGRES_DB: ${DB_PG_NAME}
     volumes:
-      - ./docker/postgres/init-scripts:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -50,6 +50,26 @@ services:
       retries: 3
     networks:
       - internal
+    
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    environment:
+      DB_PG_HOST: ${DB_PG_HOST}
+      USER_DB_PG: ${MAIN_USER_DB_PG}
+      PASS_DB_PG: ${DB_PG_PASSWORD}
+      NAME_DB_PG: ${DB_PG_NAME}
+      APP_USER: ${DB_PG_USER}
+      APP_PASSWORD: ${DB_PG_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["up"]
+    networks:
+      - internal
+  
+
   app:
     networks:
       - internal
@@ -58,8 +78,8 @@ services:
       context: .
       dockerfile: Dockerfile.golang
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
       mongodb:
         condition: service_healthy
       redis:
