@@ -39,7 +39,7 @@ func main() {
 		getEnv("DB_PG_HOST", "localhost"),
 		getEnv("USER_DB_PG", "user"),
 		getEnv("PASS_DB_PG", "1111"),
-		getEnv("NAME_DB_PG", "pullrequestdb"),
+		getEnv("NAME_DB_PG", "cryptosm"),
 	)
 
 	pool, err := pgxpool.New(context.Background(), dsn)
