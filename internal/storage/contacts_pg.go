@@ -31,17 +31,14 @@ func (s *ContStorage) SaveContactFrom(contact *models.ContactForm) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Логируем данные которые пытаемся сохранить
 	slog.Info("Attempting to save contact",
 		"name", contact.Name,
 		"email", contact.Email,
 		"message", contact.Message,
 	)
 
-	// Выполняем INSERT
 	result, err := s.pool.Exec(ctx, query, contact.Name, contact.Email, contact.Message)
 	if err != nil {
-		// Детальное логирование ошибки
 		slog.Error("SQL query execution failed",
 			"error", err,
 			"query", query,
@@ -50,7 +47,6 @@ func (s *ContStorage) SaveContactFrom(contact *models.ContactForm) error {
 		return fmt.Errorf("ошибка сохранения: %w", err)
 	}
 
-	// Логируем результат
 	rowsAffected := result.RowsAffected()
 	slog.Info("Contact saved successfully",
 		"rows_affected", rowsAffected,

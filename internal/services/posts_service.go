@@ -104,7 +104,6 @@ func (s *PostsService) DeletePost(ctx context.Context, postID bson.ObjectID, aut
 	return s.postStorage.DeletePost(ctx, postID, author)
 }
 
-// DeleteComment удаляет комментарий, если автор совпадает
 func (s *PostsService) DeleteComment(ctx context.Context, commentID bson.ObjectID, author string) error {
 	if author == "" {
 		return ErrEmptyPerson
@@ -112,7 +111,6 @@ func (s *PostsService) DeleteComment(ctx context.Context, commentID bson.ObjectI
 	return s.postStorage.DeleteComment(ctx, commentID, author)
 }
 
-// UpdatePost обновляет заголовок и основной текст поста с валидацией
 func (s *PostsService) UpdatePost(
 	ctx context.Context,
 	postID bson.ObjectID,

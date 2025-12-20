@@ -111,7 +111,6 @@ func (s *UserPostgresStorage) NewFavoriteCoin(nameU string, nameCoin string) err
 	}
 	defer tx.Rollback(context.Background())
 
-	// Проверяем существование пользователя
 	var exists bool
 	err = tx.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)", nameU).Scan(&exists)
 	if err != nil {
@@ -121,7 +120,6 @@ func (s *UserPostgresStorage) NewFavoriteCoin(nameU string, nameCoin string) err
 		return fmt.Errorf("user not found")
 	}
 
-	// Проверяем, есть ли уже монета в избранном
 	var coinExists bool
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -139,7 +137,6 @@ func (s *UserPostgresStorage) NewFavoriteCoin(nameU string, nameCoin string) err
 	}
 	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	// Добавляем монету в избранное
 	_, err = tx.Exec(ctx, `
 		UPDATE users 
 		SET favorite_coins = array_append(favorite_coins, $1) 
@@ -163,7 +160,6 @@ func (s *UserPostgresStorage) RemoveFavoriteCoin(nameU string, nameCoin string) 
 	}
 	defer tx.Rollback(context.Background())
 
-	// Проверяем существование пользователя
 	var exists bool
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -175,7 +171,6 @@ func (s *UserPostgresStorage) RemoveFavoriteCoin(nameU string, nameCoin string) 
 		return fmt.Errorf("user not found")
 	}
 
-	// Проверяем, есть ли монета в избранном
 	var coinExists bool
 	err = tx.QueryRow(context.Background(), `
 		SELECT EXISTS(
@@ -189,7 +184,6 @@ func (s *UserPostgresStorage) RemoveFavoriteCoin(nameU string, nameCoin string) 
 		return fmt.Errorf("coin does not in list")
 	}
 
-	// Удаляем монету из избранного
 	_, err = tx.Exec(context.Background(), `
 		UPDATE users 
 		SET favorite_coins = array_remove(favorite_coins, $1) 
@@ -212,9 +206,7 @@ type PublicUser struct {
 	CreatedAt     time.Time `json:"created_at"`
 }
 
-// ExportUsersToJSON экспортирует всех пользователей (без паролей и email) в JSON файл
 func (s *UserPostgresStorage) ExportUsersToJSON(filename string) error {
-	// Выполняем запрос к БД
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	rows, err := s.pool.Query(ctx, `
@@ -229,7 +221,6 @@ func (s *UserPostgresStorage) ExportUsersToJSON(filename string) error {
 
 	var users []PublicUser
 
-	// Читаем результаты
 	for rows.Next() {
 		var user PublicUser
 		err := rows.Scan(
@@ -244,23 +235,19 @@ func (s *UserPostgresStorage) ExportUsersToJSON(filename string) error {
 		users = append(users, user)
 	}
 
-	// Проверяем ошибки итерации
 	if err := rows.Err(); err != nil {
 		return fmt.Errorf("error during rows iteration: %w", err)
 	}
 
-	// Создаем JSON файл
 	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("failed to create file: %w", err)
 	}
 	defer file.Close()
 
-	// Настраиваем JSON encoder для красивого вывода
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
 
-	// Записываем данные в файл
 	if err := encoder.Encode(users); err != nil {
 		return fmt.Errorf("failed to encode JSON: %w", err)
 	}

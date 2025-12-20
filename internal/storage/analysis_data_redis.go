@@ -28,8 +28,6 @@ func (a *AnalysisTempRStorage) generateKey(pair, timeframe string) string {
 
 func (a *AnalysisTempRStorage) SaveAnalysisData(data models.AnalysisData) error {
 	key := a.generateKey(data.Pair, data.Timeframe)
-
-	// Конвертируем структуру в JSON
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %w", err)

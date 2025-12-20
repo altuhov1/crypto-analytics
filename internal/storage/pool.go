@@ -14,27 +14,21 @@ import (
 )
 
 func NewPoolPg(cfg *config.PGXConfig) (*pgxpool.Pool, error) {
-	// Формируем строку подключения
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DBName, cfg.SSLMode)
-	// Создаем пул соединений
 	config, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка конфигурации: %w", err)
 	}
 
-	// Настройки пула
 	config.MaxConns = 10
 	config.MinConns = 2
 	config.MaxConnLifetime = time.Hour
 
-	// Подключаемся
 	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка подключения: %w", err)
 	}
-
-	// Проверяем соединение
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -63,7 +57,6 @@ func NewMongoClient(config *config.MGConfig) (*mongo.Client, error) {
 		return nil, fmt.Errorf("ошибка подключения к MongoDB: %w", err)
 	}
 
-	// // Проверяем соединение
 	pingCtx, pingCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer pingCancel()
 
@@ -88,7 +81,6 @@ func NewRedisClient(cfg *config.RedisConfig) (*redis.Client, error) {
 		PoolTimeout:  30 * time.Second,
 	})
 
-	// Проверяем соединение
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
