@@ -38,6 +38,9 @@ func upCreateSubscriptionsTable(ctx context.Context, tx *sql.Tx) error {
 	if err != nil {
 		return err
 	}
+	_, err = tx.ExecContext(ctx, `
+		CREATE INDEX idx_users_username ON users(username);
+	`)
 
 	return err
 }
