@@ -10,7 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// CreatePostHandler создает новый пост
 func (h *Handler) CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("CreatePostHandler started")
 
@@ -20,7 +19,6 @@ func (h *Handler) CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		MainText string `json:"mainText"`
 		Date     string `json:"date"`
 	}
-
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		slog.Error("Failed to decode request body", "error", err)
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
