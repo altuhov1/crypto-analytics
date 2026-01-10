@@ -1,5 +1,3 @@
-// internal/config/early_logger.go (новый файл)
-
 package config
 
 import (
